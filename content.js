@@ -311,8 +311,16 @@
       this.timer = setTimeout(() => this._run(), DEBOUNCE_MS);
     }
 
+    // Extrae texto de los nodos de texto (coherente con el charMap)
+    _getText() {
+      const walker = document.createTreeWalker(this.el, NodeFilter.SHOW_TEXT);
+      let text = '', node;
+      while ((node = walker.nextNode())) text += node.textContent;
+      return text;
+    }
+
     async _run() {
-      const text = this.el.innerText;
+      const text = this._getText();
       if (text.trim().length < MIN_LENGTH) { this.clear(); return; }
 
       const result = await checkText(text);
@@ -396,11 +404,21 @@
         const map = this._charMap;
         const si = match.offset, ei = match.offset + match.length - 1;
         if (si < map.length && ei < map.length) {
-          const r = new Range();
-          r.setStart(map[si].node, map[si].off);
-          r.setEnd(map[ei].node, map[ei].off + 1);
-          const rect = r.getBoundingClientRect();
-          if (rect.width > 0) showTooltip(rect, match, val => this._apply(match, val));
+          try {
+            const r = new Range();
+            // Validar que los offsets son aún válidos (el DOM puede haber cambiado)
+            if (map[si].off > map[si].node.length || map[ei].off + 1 > map[ei].node.length) {
+              this._schedule(); // recomputar mapa
+              return;
+            }
+            r.setStart(map[si].node, map[si].off);
+            r.setEnd(map[ei].node, map[ei].off + 1);
+            const rect = r.getBoundingClientRect();
+            if (rect.width > 0) showTooltip(rect, match, val => this._apply(match, val));
+          } catch {
+            // El DOM cambió desde que se computó el charMap; recomputar
+            this._schedule();
+          }
         }
       } else {
         scheduleHide();
@@ -413,13 +431,53 @@
       const si = match.offset, ei = match.offset + match.length - 1;
       if (ei >= map.length) return;
 
-      const r = new Range();
-      r.setStart(map[si].node, map[si].off);
-      r.setEnd(map[ei].node, map[ei].off + 1);
-      r.deleteContents();
-      r.insertNode(document.createTextNode(suggestion));
-      this.el.normalize();
-      this.el.dispatchEvent(new Event('input', { bubbles: true }));
+      const startNode = map[si].node, startOff = map[si].off;
+      const endNode   = map[ei].node, endOff   = map[ei].off + 1;
+
+      this.clear();
+      hideTooltip();
+
+      try {
+        const r = new Range();
+        // Validar offsets antes de usarlos
+        if (startOff > startNode.length || endOff > endNode.length) {
+          throw new Error('stale charMap');
+        }
+        r.setStart(startNode, startOff);
+        r.setEnd(endNode, endOff);
+
+        const sel = window.getSelection();
+        if (sel) {
+          sel.removeAllRanges();
+          sel.addRange(r);
+        }
+
+        // execCommand es compatible con editores complejos (Notion, Docs, etc.)
+        // porque pasa por el sistema de eventos nativo en lugar de modificar el DOM directamente
+        const ok = document.execCommand('insertText', false, suggestion);
+
+        if (!ok) {
+          // Fallback para editores que no soportan execCommand
+          r.deleteContents();
+          const newNode = document.createTextNode(suggestion);
+          r.insertNode(newNode);
+          this.el.normalize();
+
+          if (sel) {
+            const cr = document.createRange();
+            cr.setStartAfter(newNode);
+            cr.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(cr);
+          }
+          this.el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      } catch {
+        const full = this._getText();
+        this.el.textContent = full.slice(0, match.offset) + suggestion + full.slice(match.offset + match.length);
+        this.el.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+
       this._schedule();
     }
 

@@ -49,7 +49,12 @@ async function handleCheckText({ text, language, serverUrl, apiKey }) {
 
   // Limpiar URL base
   const base = (serverUrl || 'http://localhost:8081').replace(/\/$/, '');
-  const lang = language || 'auto';
+  const lang = (() => {
+    const l = language || 'auto';
+    // Variantes no soportadas por LT → mapear a español genérico
+    if (l === 'es-CO' || l === 'es-MX' || l === 'es-CL') return 'es';
+    return l;
+  })();
 
   // Caché
   const key = cacheKey(text, lang);
