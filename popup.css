@@ -80,6 +80,12 @@ body {
   text-transform: none;
   letter-spacing: 0;
 }
+.label-sub {
+  font-size: 11px;
+  color: #888;
+  margin: 1px 0 0;
+  font-weight: 400;
+}
 
 .row-between {
   display: flex;

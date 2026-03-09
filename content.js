@@ -19,11 +19,11 @@
   ];
 
   // ─── Configuración dinámica ──────────────────────────────────────────────
-  let cfg = { enabled: true, language: 'auto', serverUrl: 'http://localhost:8081', apiKey: '' };
+  let cfg = { enabled: true, autoCorrect: false, language: 'auto', serverUrl: 'http://localhost:8081', apiKey: '' };
 
   function loadCfg() {
     return new Promise(resolve =>
-      chrome.storage.sync.get(['enabled', 'language', 'serverUrl', 'apiKey'], data => {
+      chrome.storage.sync.get(['enabled', 'autoCorrect', 'language', 'serverUrl', 'apiKey'], data => {
         cfg = { ...cfg, ...data };
         resolve();
       })
@@ -87,11 +87,12 @@
 
   // ─── Clase CSS según categoría de error ─────────────────────────────────
   function errorClass(match) {
-    const cat = match.rule?.category?.id || '';
-    if (cat === 'TYPOS' || cat === 'SPELLING')                   return 'gc-spelling';
+    const cat  = match.rule?.category?.id || '';
+    const type = match.rule?.issueType || '';
+    if (cat === 'TYPOS' || cat === 'SPELLING' || type === 'misspelling') return 'gc-spelling';
     if (cat === 'STYLE' || cat === 'REDUNDANCY' ||
-        cat === 'COLLOQUIALISMS')                                 return 'gc-style';
-    if (cat === 'PUNCTUATION')                                    return 'gc-punctuation';
+        cat === 'COLLOQUIALISMS')                                         return 'gc-style';
+    if (cat === 'PUNCTUATION')                                            return 'gc-punctuation';
     return 'gc-grammar';
   }
 
@@ -202,6 +203,7 @@
       el.addEventListener('input',  () => this._schedule());
       el.addEventListener('focus',  () => this._schedule());
       el.addEventListener('scroll', () => this._syncScroll());
+      el.addEventListener('keyup',  (e) => this._onKey(e));
 
       new ResizeObserver(() => this._syncStyles()).observe(el);
 
@@ -293,6 +295,28 @@
       this._schedule();
     }
 
+    _onKey(e) {
+      if (!cfg.autoCorrect || !this.matches.length) return;
+      const wordBoundaries = [' ', '.', ',', '!', '?', ':', ';', '\n', '\r'];
+      if (!wordBoundaries.includes(e.key)) return;
+
+      const cursorPos = this.el.selectionStart;
+      // Buscar el último error ortográfico que terminó justo antes del cursor
+      const candidates = this.matches
+        .filter(m =>
+          errorClass(m) === 'gc-spelling' &&
+          m.replacements?.length > 0 &&
+          m.offset + m.length < cursorPos
+        )
+        .sort((a, b) => (b.offset + b.length) - (a.offset + a.length));
+
+      if (!candidates.length) return;
+      const m = candidates[0];
+      // Solo corregir la última palabra completada (debe terminar cerca del cursor)
+      if (cursorPos - (m.offset + m.length) > 2) return;
+      this._apply(m, m.replacements[0].value);
+    }
+
     clear() {
       this.matches = [];
       if (this.overlay) this.overlay.innerHTML = '';
@@ -320,6 +344,7 @@
       this.el.addEventListener('focus',     () => this._schedule());
       this.el.addEventListener('mousemove', (e) => this._onHover(e));
       this.el.addEventListener('mouseleave', scheduleHide);
+      this.el.addEventListener('keyup',     (e) => this._onKey(e));
       if (this.el.textContent.trim().length >= MIN_LENGTH) this._schedule();
     }
 
@@ -440,6 +465,34 @@
       } else {
         scheduleHide();
       }
+    }
+
+    _onKey(e) {
+      if (!cfg.autoCorrect || !this.matches.length) return;
+      const wordBoundaries = [' ', '.', ',', '!', '?', ':', ';', '\n', '\r'];
+      if (!wordBoundaries.includes(e.key)) return;
+
+      // Obtener offset del cursor en el texto plano
+      let cursorPos = -1;
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        cursorPos = this._getCharOffset(range.startContainer, range.startOffset);
+      }
+      if (cursorPos < 0) return;
+
+      const candidates = this.matches
+        .filter(m =>
+          errorClass(m) === 'gc-spelling' &&
+          m.replacements?.length > 0 &&
+          m.offset + m.length < cursorPos
+        )
+        .sort((a, b) => (b.offset + b.length) - (a.offset + a.length));
+
+      if (!candidates.length) return;
+      const m = candidates[0];
+      if (cursorPos - (m.offset + m.length) > 2) return;
+      this._apply(m, m.replacements[0].value);
     }
 
     _apply(match, suggestion) {

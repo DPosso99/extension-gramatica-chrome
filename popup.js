@@ -5,23 +5,25 @@
 const $ = id => document.getElementById(id);
 
 const ui = {
-  statusDot:     $('statusDot'),
-  statusText:    $('statusText'),
-  enabledToggle: $('enabledToggle'),
-  langSelect:    $('langSelect'),
-  serverUrl:     $('serverUrl'),
-  apiKey:        $('apiKey'),
-  testBtn:       $('testBtn'),
-  toggleKey:     $('toggleKey'),
-  errBanner:     $('errBanner'),
+  statusDot:          $('statusDot'),
+  statusText:         $('statusText'),
+  enabledToggle:      $('enabledToggle'),
+  autoCorrectToggle:  $('autoCorrectToggle'),
+  langSelect:         $('langSelect'),
+  serverUrl:          $('serverUrl'),
+  apiKey:             $('apiKey'),
+  testBtn:            $('testBtn'),
+  toggleKey:          $('toggleKey'),
+  errBanner:          $('errBanner'),
 };
 
 // ─── Cargar configuración al abrir el popup ──────────────────────────────
-chrome.storage.sync.get(['enabled', 'language', 'serverUrl', 'apiKey'], data => {
-  ui.enabledToggle.checked = data.enabled !== false;
-  ui.langSelect.value      = data.language   || 'es-CO';
-  ui.serverUrl.value       = data.serverUrl  || 'http://localhost:8081';
-  ui.apiKey.value          = data.apiKey     || '';
+chrome.storage.sync.get(['enabled', 'autoCorrect', 'language', 'serverUrl', 'apiKey'], data => {
+  ui.enabledToggle.checked     = data.enabled !== false;
+  ui.autoCorrectToggle.checked = data.autoCorrect === true;
+  ui.langSelect.value          = data.language   || 'es-CO';
+  ui.serverUrl.value           = data.serverUrl  || 'http://localhost:8081';
+  ui.apiKey.value              = data.apiKey     || '';
 
   verifyServer(ui.serverUrl.value, ui.apiKey.value);
 });
@@ -29,6 +31,10 @@ chrome.storage.sync.get(['enabled', 'language', 'serverUrl', 'apiKey'], data => 
 // ─── Guardar al cambiar ──────────────────────────────────────────────────
 ui.enabledToggle.addEventListener('change', () => {
   chrome.storage.sync.set({ enabled: ui.enabledToggle.checked });
+});
+
+ui.autoCorrectToggle.addEventListener('change', () => {
+  chrome.storage.sync.set({ autoCorrect: ui.autoCorrectToggle.checked });
 });
 
 ui.langSelect.addEventListener('change', () => {
