@@ -68,6 +68,23 @@
     return null;
   }
 
+  // ─── Escuchar reinit del SW (al arrancar Chrome o despertar el PC) ────────
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.action === 'reinit') {
+      loadCfg().then(() => {
+        if (!cfg.enabled) return;
+        // Relanzar revisión en todos los elementos ya attachados
+        document.querySelectorAll('textarea, [contenteditable="true"]').forEach(el => {
+          const checker = checkers.get(el);
+          if (checker) { checker.clear(); checker._schedule(); }
+          else attach(el);
+        });
+        // Buscar nuevos elementos que quizás aún no estaban
+        scan(document.body);
+      });
+    }
+  });
+
   // ─── Clase CSS según categoría de error ─────────────────────────────────
   function errorClass(match) {
     const cat = match.rule?.category?.id || '';

@@ -7,6 +7,17 @@
 chrome.alarms.create('keepAlive', { periodInMinutes: 0.4 }); // cada ~24 segundos
 chrome.alarms.onAlarm.addListener(() => {}); // no-op, solo evita que el SW se duerma
 
+// ─── Al arrancar Chrome o despertar, notificar a todas las pestañas abiertas ─────
+async function notifyAllTabs() {
+  const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] });
+  for (const tab of tabs) {
+    chrome.tabs.sendMessage(tab.id, { action: 'reinit' }).catch(() => {});
+  }
+}
+
+chrome.runtime.onStartup.addListener(notifyAllTabs);
+chrome.runtime.onInstalled.addListener(notifyAllTabs);
+
 // ─── Caché de resultados para no repetir peticiones idénticas ───────────────
 const cache = new Map();
 const CACHE_MAX = 100;

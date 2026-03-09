@@ -19,7 +19,7 @@ const ui = {
 // ─── Cargar configuración al abrir el popup ──────────────────────────────
 chrome.storage.sync.get(['enabled', 'language', 'serverUrl', 'apiKey'], data => {
   ui.enabledToggle.checked = data.enabled !== false;
-  ui.langSelect.value      = data.language   || 'es';
+  ui.langSelect.value      = data.language   || 'es-CO';
   ui.serverUrl.value       = data.serverUrl  || 'http://localhost:8081';
   ui.apiKey.value          = data.apiKey     || '';
 
