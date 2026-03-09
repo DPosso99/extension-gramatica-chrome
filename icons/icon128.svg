@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg128" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#1976D2"/>
+      <stop offset="100%" stop-color="#0D47A1"/>
+    </linearGradient>
+    <linearGradient id="wave128" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#E53935"/>
+      <stop offset="50%"  stop-color="#FB8C00"/>
+      <stop offset="100%" stop-color="#E53935"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fondo circular -->
+  <circle cx="64" cy="64" r="62" fill="url(#bg128)"/>
+
+  <!-- Letra G grande -->
+  <text x="64" y="84" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="76" font-weight="bold" fill="#ffffff">G</text>
+
+  <!-- Subrayado ondulado (3 olas) -->
+  <path d="M18 106 Q26 100 34 106 Q42 112 50 106 Q58 100 66 106 Q74 112 82 106 Q90 100 98 106 Q106 112 114 106"
+        fill="none" stroke="url(#wave128)" stroke-width="4.5" stroke-linecap="round"/>
+</svg>

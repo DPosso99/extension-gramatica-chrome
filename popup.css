@@ -1,0 +1,261 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   popup.css — Estilos del panel emergente de GramChecker
+   ════════════════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  font-size: 13px;
+  color: #1a1a1a;
+  background: #f5f7fb;
+  min-width: 310px;
+  max-width: 340px;
+}
+
+.popup { padding: 0 0 8px; }
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.pup-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 12px;
+  background: linear-gradient(135deg, #1565C0 0%, #1976D2 100%);
+  color: #fff;
+  border-radius: 0;
+}
+.pup-header img { flex-shrink: 0; filter: brightness(0) invert(1); }
+.pup-header h1  { font-size: 16px; font-weight: 700; letter-spacing: 0.3px; }
+.pup-subtitle   { font-size: 11px; opacity: 0.8; margin-top: 1px; }
+
+/* ── Barra de estado ─────────────────────────────────────────────────────── */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e8ecf1;
+  font-size: 12px;
+  color: #555;
+}
+
+.status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #bdbdbd;
+}
+.dot-on   { background: #43A047; box-shadow: 0 0 0 2px #C8E6C9; }
+.dot-off  { background: #E53935; box-shadow: 0 0 0 2px #FFCDD2; }
+.dot-wait { background: #FB8C00; box-shadow: 0 0 0 2px #FFE0B2; animation: pulse 1s infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ── Secciones ───────────────────────────────────────────────────────────── */
+.section {
+  padding: 10px 16px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.label-main {
+  display: block;
+  font-weight: 600;
+  font-size: 12px;
+  color: #444;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.label-opt {
+  font-weight: 400;
+  font-size: 10.5px;
+  color: #888;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.row-between .label-main { margin-bottom: 0; }
+
+/* ── Toggle switch ───────────────────────────────────────────────────────── */
+.toggle-sw {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.toggle-sw input { opacity: 0; width: 0; height: 0; }
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #ccc;
+  border-radius: 22px;
+  transition: background 0.25s;
+}
+.slider::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 3px;
+  bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.25s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.toggle-sw input:checked + .slider              { background: #1565C0; }
+.toggle-sw input:checked + .slider::before      { transform: translateX(18px); }
+
+/* ── Select ──────────────────────────────────────────────────────────────── */
+.full-select {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid #dde3ed;
+  border-radius: 6px;
+  background: #f9fbff;
+  font-size: 13px;
+  color: #1a1a1a;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231565C0' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  cursor: pointer;
+}
+.full-select:focus { outline: 2px solid #90CAF9; border-color: #1565C0; }
+
+/* ── Input + botón ───────────────────────────────────────────────────────── */
+.input-row {
+  display: flex;
+  gap: 6px;
+}
+.full-input {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px solid #dde3ed;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #1a1a1a;
+  background: #f9fbff;
+}
+.full-input:focus { outline: 2px solid #90CAF9; border-color: #1565C0; }
+
+.btn-icon {
+  width: 34px;
+  border: 1px solid #1565C0;
+  border-radius: 6px;
+  background: #E3F2FD;
+  color: #1565C0;
+  font-size: 17px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.btn-icon:hover { background: #1565C0; color: #fff; }
+
+/* ── Banner de error ─────────────────────────────────────────────────────── */
+.err-banner {
+  margin: 0 16px 4px;
+  padding: 8px 12px;
+  background: #FFF3E0;
+  border: 1px solid #FFCC02;
+  border-left: 4px solid #E65100;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #4E342E;
+  white-space: pre-line;
+  line-height: 1.5;
+}
+
+/* ── Leyenda de colores ──────────────────────────────────────────────────── */
+.legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+}
+.lg-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #555;
+}
+.lg-line {
+  display: inline-block;
+  width: 22px;
+  height: 2px;
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+.lg-spell { background: #E53935; }
+.lg-gram  { background: #1565C0; }
+.lg-style { background: #E65100; border-top: 2px dashed #E65100; height: 0; }
+.lg-punct { background: transparent; border-top: 2px dotted #6A1B9A; height: 0; }
+
+/* ── Guía de instalación ─────────────────────────────────────────────────── */
+.guide {
+  margin: 8px 16px 4px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e0e7f1;
+}
+.guide > summary {
+  padding: 9px 14px;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: #1565C0;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+.guide > summary::before {
+  content: '▸ ';
+  font-size: 10px;
+}
+.guide[open] > summary::before { content: '▾ '; }
+
+.guide-body {
+  padding: 4px 14px 12px;
+  font-size: 12px;
+  color: #444;
+  line-height: 1.6;
+}
+.guide-body p { margin-bottom: 4px; }
+
+.code-block {
+  display: block;
+  background: #F5F5F5;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-family: 'Cascadia Code', 'Consolas', monospace;
+  font-size: 11.5px;
+  color: #212121;
+  margin: 4px 0 10px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.guide-note {
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: #7b6000;
+  background: #FFFDE7;
+  border-radius: 4px;
+  padding: 5px 8px;
+}
