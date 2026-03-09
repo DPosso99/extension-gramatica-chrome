@@ -33,6 +33,13 @@
   chrome.storage.onChanged.addListener(changes => {
     for (const [k, v] of Object.entries(changes)) cfg[k] = v.newValue;
     if ('enabled' in changes && !changes.enabled.newValue) clearAllHighlights();
+    // Cuando cambia el idioma, relanzar revisión en todos los checkers activos
+    if ('language' in changes) {
+      document.querySelectorAll('textarea, [contenteditable="true"]').forEach(el => {
+        const checker = checkers.get(el);
+        if (checker) { checker.clear(); checker._schedule(); }
+      });
+    }
   });
 
   // ─── Utilidades HTML seguras ─────────────────────────────────────────────
@@ -49,17 +56,16 @@
   // ─── Comunicación con el background ─────────────────────────────────────
   async function checkText(text) {
     if (!cfg.enabled) return null;
-    try {
-      return await chrome.runtime.sendMessage({
-        action: 'checkText',
-        text,
-        language: cfg.language,
-        serverUrl: cfg.serverUrl,
-        apiKey: cfg.apiKey,
-      });
-    } catch {
-      return null;
+    const msg = { action: 'checkText', text, language: cfg.language, serverUrl: cfg.serverUrl, apiKey: cfg.apiKey };
+    // Reintentar una vez si el SW estaba dormido y acaba de despertar
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        return await chrome.runtime.sendMessage(msg);
+      } catch {
+        if (attempt === 0) await new Promise(r => setTimeout(r, 600));
+      }
     }
+    return null;
   }
 
   // ─── Clase CSS según categoría de error ─────────────────────────────────

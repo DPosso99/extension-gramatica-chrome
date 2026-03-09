@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Corrección ortográfica y gramatical para Español e Inglés usando LanguageTool local",
 
-  "permissions": ["storage", "activeTab"],
+  "permissions": ["storage", "activeTab", "alarms"],
   "host_permissions": [
     "http://localhost/*",
     "http://127.0.0.1/*",

@@ -3,6 +3,10 @@
 
 'use strict';
 
+// ─── Mantener el Service Worker vivo (MV3 lo duerme tras 30s) ───────────────
+chrome.alarms.create('keepAlive', { periodInMinutes: 0.4 }); // cada ~24 segundos
+chrome.alarms.onAlarm.addListener(() => {}); // no-op, solo evita que el SW se duerma
+
 // ─── Caché de resultados para no repetir peticiones idénticas ───────────────
 const cache = new Map();
 const CACHE_MAX = 100;
@@ -56,10 +60,16 @@ async function handleCheckText({ text, language, serverUrl, apiKey }) {
   const body = new URLSearchParams({
     text,
     language: lang,
-    // Activar todas las categorías disponibles adicionales
     enabledCategories: 'STYLE,REDUNDANCY,COLLOQUIALISMS,TYPOGRAPHY,PUNCTUATION',
     enabledOnly: 'false',
   });
+
+  // Si está en auto-detección, dar pistas de idioma preferido (ES + EN)
+  // para que no detecte portugués u otros idiomas similares al español
+  if (lang === 'auto') {
+    body.set('preferredLanguages', 'es,en');
+    body.set('preferredVariants', 'es-ES,en-US');
+  }
 
   const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
   // Adjuntar API Key si está configurada (requerida para servidor en la nube)
@@ -95,7 +105,7 @@ async function handleCheckStatus(serverUrl, apiKey) {
   const response = await fetch(`${base}/v2/languages`, {
     method: 'GET',
     headers,
-    signal: AbortSignal.timeout(4000),
+    signal: AbortSignal.timeout(8000),
   });
 
   if (!response.ok) {
