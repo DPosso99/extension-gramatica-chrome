@@ -131,15 +131,20 @@
     tooltipEl.innerHTML = html;
     tooltipEl.style.display = 'block';
 
-    // Posicionar
-    const sx = window.scrollX, sy = window.scrollY, vw = window.innerWidth;
+    // Posicionar: abajo si cabe, arriba si no
+    const sx = window.scrollX, sy = window.scrollY;
+    const vw = window.innerWidth, vh = window.innerHeight;
     tooltipEl.style.top = '-9999px';
     tooltipEl.style.left = '0';
     const tw = tooltipEl.offsetWidth;
+    const th = tooltipEl.offsetHeight;
     let left = rect.left + sx;
-    let top  = rect.bottom + sy + 6;
     if (left + tw > sx + vw - 10) left = sx + vw - tw - 10;
     if (left < sx + 5)             left = sx + 5;
+    const spaceBelow = vh - rect.bottom;
+    const top = spaceBelow >= th + 10
+      ? rect.bottom + sy + 6          // hay espacio abajo
+      : rect.top    + sy - th - 6;    // no hay espacio: va arriba
     tooltipEl.style.left = left + 'px';
     tooltipEl.style.top  = top  + 'px';
 
