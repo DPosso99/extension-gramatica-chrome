@@ -5,7 +5,12 @@
 
 // ─── Mantener el Service Worker vivo (MV3 lo duerme tras 30s) ───────────────
 chrome.alarms.create('keepAlive', { periodInMinutes: 0.4 }); // cada ~24 segundos
-chrome.alarms.onAlarm.addListener(() => {}); // no-op, solo evita que el SW se duerma
+chrome.alarms.onAlarm.addListener(alarm => {
+  if (alarm.name === 'keepAlive') {
+    // Leer storage fuerza al SW a mantenerse activo
+    chrome.storage.sync.get('enabled', () => {});
+  }
+});
 
 // ─── Al arrancar Chrome o despertar, notificar a todas las pestañas abiertas ─────
 async function notifyAllTabs() {
@@ -121,7 +126,7 @@ async function handleCheckStatus(serverUrl, apiKey) {
   const response = await fetch(`${base}/v2/languages`, {
     method: 'GET',
     headers,
-    signal: AbortSignal.timeout(8000),
+    signal: AbortSignal.timeout(10000),
   });
 
   if (!response.ok) {

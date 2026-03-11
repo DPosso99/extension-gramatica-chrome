@@ -69,13 +69,31 @@ async function verifyServer(rawUrl, apiKey) {
 
   const url = sanitizeUrl(rawUrl) || 'http://localhost:8081';
 
-  try {
-    const res = await chrome.runtime.sendMessage({
-      action: 'checkServerStatus',
-      serverUrl: url,
-      apiKey: apiKey || '',
-    });
+  // Intentar hasta 3 veces con timeout explícito (el SW puede estar despertando)
+  function sendWithTimeout(payload, ms) {
+    return Promise.race([
+      chrome.runtime.sendMessage(payload),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+    ]);
+  }
 
+  let res;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      res = await sendWithTimeout({
+        action: 'checkServerStatus',
+        serverUrl: url,
+        apiKey: apiKey || '',
+      }, 12000);
+      if (res) break; // respuesta válida
+    } catch {
+      if (attempt < 2) {
+        await new Promise(r => setTimeout(r, 1000)); // esperar que el SW despierte
+      }
+    }
+  }
+
+  try {
     if (res?.online) {
       let extra = '';
       if (res.hasEs) extra += ' · ES';

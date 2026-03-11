@@ -161,3 +161,38 @@
   background: linear-gradient(90deg, #E53935 0%, #1565C0 50%, #E65100 100%);
   margin: -10px -14px 10px;
 }
+
+/* Sección de botones "Ignorar" */
+.gc-ttip-ignore {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid #eeeeee;
+}
+
+/* Botón base de ignorar */
+.gc-ignore-word,
+.gc-ignore-rule {
+  display: inline-block;
+  background: transparent;
+  border: 1px solid #bdbdbd;
+  border-radius: 5px;
+  padding: 2px 9px;
+  font-size: 11.5px;
+  font-family: inherit;
+  color: #757575;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.gc-ignore-word:hover {
+  background: #fbe9e7;
+  border-color: #E53935;
+  color: #c62828;
+}
+.gc-ignore-rule:hover {
+  background: #f3e5f5;
+  border-color: #7B1FA2;
+  color: #6A1B9A;
+}
