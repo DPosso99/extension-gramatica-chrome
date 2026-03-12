@@ -29,8 +29,10 @@
   background: transparent !important;
   color: transparent !important;
   border-radius: 2px;
-  cursor: default;
-  padding: 0;
+  cursor: pointer;
+  /* Área de hover ampliada: el usuario no necesita apuntar exactamente al subrayado */
+  padding: 4px 2px !important;
+  margin: -4px -2px !important;
 }
 
 /* Ortografía → línea roja continua (clásica) */

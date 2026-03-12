@@ -218,7 +218,7 @@
   }
 
   function scheduleHide() {
-    tooltipHideTimer = setTimeout(hideTooltip, 200);
+    tooltipHideTimer = setTimeout(hideTooltip, 600);
   }
   function hideTooltip() {
     if (tooltipEl) tooltipEl.style.display = 'none';
@@ -340,12 +340,13 @@
         if (!match) return;
 
         const word = text.slice(match.offset, match.offset + match.length);
-        mark.addEventListener('mouseenter', () =>
+        const doShow = () =>
           showTooltip(mark.getBoundingClientRect(), match, word,
             val => this._apply(match, val),
             w   => ignoreWord(w),
-            rid => ignoreRule(rid))
-        );
+            rid => ignoreRule(rid));
+        mark.addEventListener('mouseenter', doShow);
+        mark.addEventListener('click',      doShow);
         mark.addEventListener('mouseleave', scheduleHide);
       });
 
@@ -410,6 +411,7 @@
       this.el.addEventListener('input',     () => this._schedule());
       this.el.addEventListener('focus',     () => this._schedule());
       this.el.addEventListener('mousemove', (e) => this._onHover(e));
+      this.el.addEventListener('click',     (e) => this._onHover(e));
       this.el.addEventListener('mouseleave', scheduleHide);
       this.el.addEventListener('keyup',     (e) => this._onKey(e));
       if (this.el.textContent.trim().length >= MIN_LENGTH) this._schedule();
@@ -531,8 +533,9 @@
       if (charOff < 0) { scheduleHide(); return; }
 
       const text  = this._lastText || '';
+      // Buscar un match en un radio de ±2 caracteres para facilitar la selección
       const match = this.matches.find(m =>
-        !isIgnored(m, text) && charOff >= m.offset && charOff < m.offset + m.length);
+        !isIgnored(m, text) && charOff >= m.offset - 2 && charOff < m.offset + m.length + 2);
 
       if (match) {
         clearTimeout(tooltipHideTimer);
