@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GramChecker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+<div class="popup">
+
+  <!-- Header -->
+  <header class="pup-header">
+    <img src="icons/icon48.svg" alt="GramChecker" width="36" height="36">
+    <div>
+      <h1>GramChecker</h1>
+      <p class="pup-subtitle">Corrector Gramatical Privado</p>
+    </div>
+  </header>
+
+  <!-- Estado del servidor -->
+  <div class="status-bar" id="statusBar">
+    <span class="status-dot" id="statusDot"></span>
+    <span class="status-text" id="statusText">Verificando servidor…</span>
+  </div>
+
+  <!-- Activar / Desactivar -->
+  <div class="section">
+    <div class="row-between">
+      <label for="enabledToggle" class="label-main">Corrección activa</label>
+      <label class="toggle-sw">
+        <input type="checkbox" id="enabledToggle" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Auto-corrección -->
+  <div class="section">
+    <div class="row-between">
+      <div>
+        <label for="autoCorrectToggle" class="label-main">Auto-corregir</label>
+        <p class="label-sub">Corrige ortografía al presionar espacio</p>
+      </div>
+      <label class="toggle-sw">
+        <input type="checkbox" id="autoCorrectToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Selector de idioma -->
+  <div class="section">
+    <label class="label-main" for="langSelect">Idioma</label>
+    <select id="langSelect" class="full-select">
+      <option value="auto">Detección automática</option>
+      <optgroup label="Español">
+        <option value="es">Español (genérico)</option>
+        <option value="es-ES">Español — España</option>
+        <option value="es-AR">Español — Argentina / voseo</option>
+        <option value="es-CO">Español — Colombia</option>
+      </optgroup>
+      <optgroup label="English">
+        <option value="en-US">English — US</option>
+        <option value="en-GB">English — UK</option>
+        <option value="en-AU">English — Australia</option>
+      </optgroup>
+    </select>
+  </div>
+
+  <!-- URL del servidor -->
+  <div class="section">
+    <label class="label-main" for="serverUrl">Servidor LanguageTool</label>
+    <div class="input-row">
+      <input type="url" id="serverUrl" class="full-input"
+             placeholder="https://tu-ip-oracle o http://localhost:8081"
+             spellcheck="false">
+      <button id="testBtn" class="btn-icon" title="Verificar conexión">&#8635;</button>
+    </div>
+  </div>
+
+  <!-- API Key (requerida para servidor en la nube) -->
+  <div class="section">
+    <label class="label-main" for="apiKey">API Key <span class="label-opt">(cloud)</span></label>
+    <div class="input-row">
+      <input type="password" id="apiKey" class="full-input"
+             placeholder="Deja vacío para servidor local"
+             spellcheck="false" autocomplete="off">
+      <button id="toggleKey" class="btn-icon" title="Mostrar/Ocultar">&#128065;</button>
+    </div>
+  </div>
+
+  <!-- Banner de error -->
+  <div class="err-banner" id="errBanner" style="display:none;"></div>
+
+  <!-- Leyenda de colores -->
+  <div class="section">
+    <p class="label-main">Tipo de error</p>
+    <div class="legend">
+      <span class="lg-item"><span class="lg-line lg-spell"></span>Ortografía</span>
+      <span class="lg-item"><span class="lg-line lg-gram"></span>Gramática</span>
+      <span class="lg-item"><span class="lg-line lg-style"></span>Estilo</span>
+      <span class="lg-item"><span class="lg-line lg-punct"></span>Puntuación</span>
+    </div>
+  </div>
+
+  <!-- Guía de instalación -->
+  <details class="guide">
+    <summary>¿Cómo instalar el servidor?</summary>
+    <div class="guide-body">
+      <p><strong>1.</strong> Instala <strong>Java 11 o superior</strong></p>
+      <p><strong>2.</strong> Descarga LanguageTool (versión standalone):</p>
+      <code class="code-block">languagetool.org/download</code>
+      <p><strong>3.</strong> Descomprime y ejecuta:</p>
+      <code class="code-block">java -jar languagetool-server.jar<br>
+  --port 8081 --allow-origin "*"</code>
+      <p>El servidor queda disponible en<br>
+         <strong>http://localhost:8081</strong></p>
+      <p class="guide-note">⚠ El servidor debe estar corriendo cada vez que uses el
+         corrector. Puedes crear un script <code>.bat</code> para iniciarlo rápido.</p>
+    </div>
+  </details>
+
+</div><!-- /.popup -->
+<script src="popup.js"></script>
+</body>
+</html>

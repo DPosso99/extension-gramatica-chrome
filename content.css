@@ -1,0 +1,206 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   content.css — Estilos inyectados en todas las páginas
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Wrapper que envuelve el <textarea> ────────────────────────────────── */
+.gc-wrapper {
+  /* display/margin se fijan en JS para no romper el flujo */
+  vertical-align: top;
+}
+
+/* ── Overlay transparente encima del textarea ──────────────────────────── */
+.gc-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: transparent;
+  background: transparent;
+  user-select: none;
+  z-index: 1;
+}
+
+/* ── Marcas de error dentro del overlay ───────────────────────────────── */
+.gc-overlay mark,
+.gc-mark {
+  background: transparent !important;
+  color: transparent !important;
+  border-radius: 2px;
+  cursor: pointer;
+  /* Área de hover ampliada: el usuario no necesita apuntar exactamente al subrayado */
+  padding: 4px 2px !important;
+  margin: -4px -2px !important;
+}
+
+/* Ortografía → línea roja continua (clásica) */
+.gc-spelling {
+  border-bottom: 2px solid #E53935 !important;
+  text-decoration: none !important;
+}
+
+/* Gramática → línea azul continua */
+.gc-grammar {
+  border-bottom: 2px solid #1565C0 !important;
+  text-decoration: none !important;
+}
+
+/* Estilo / redundancia → línea naranja discontinua */
+.gc-style {
+  border-bottom: 2px dashed #E65100 !important;
+  text-decoration: none !important;
+}
+
+/* Puntuación → línea violeta punteada */
+.gc-punctuation {
+  border-bottom: 2px dotted #6A1B9A !important;
+  text-decoration: none !important;
+}
+
+/* ── CSS Custom Highlight API — contenteditable ────────────────────────── */
+::highlight(gc-spelling) {
+  text-decoration: underline wavy #E53935;
+  text-decoration-skip-ink: none;
+}
+
+::highlight(gc-grammar) {
+  text-decoration: underline wavy #1565C0;
+  text-decoration-skip-ink: none;
+}
+
+::highlight(gc-style) {
+  text-decoration: underline wavy #E65100;
+  text-decoration-skip-ink: none;
+}
+
+::highlight(gc-punctuation) {
+  text-decoration: underline wavy #6A1B9A;
+  text-decoration-skip-ink: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Tooltip
+   ══════════════════════════════════════════════════════════════════════════ */
+#gramchecker-tooltip,
+.gramchecker-tooltip {
+  position: absolute !important;
+  z-index: 2147483647 !important;
+  display: none;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  padding: 14px 16px;
+  max-width: 360px;
+  min-width: 200px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  color: #334155 !important;
+  pointer-events: auto;
+  box-sizing: border-box;
+}
+
+/* Título corto del error */
+.gc-ttip-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+/* Descripción larga del error */
+.gc-ttip-msg {
+  color: #475569;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+/* Contenedor de botones de sugerencia */
+.gc-ttip-sug {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* Botón de sugerencia individual */
+.gc-sug {
+  display: inline-block;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.gc-sug:hover {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  transform: translateY(-1px);
+}
+.gc-sug:active {
+  transform: translateY(0);
+}
+
+/* Etiqueta de categoría */
+.gc-ttip-cat {
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+/* Separador de colores en el borde superior del tooltip */
+#gramchecker-tooltip::before {
+  content: '';
+  display: block;
+  height: 4px;
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(90deg, #ef4444 0%, #3b82f6 50%, #f59e0b 100%);
+  margin: -14px -16px 12px;
+}
+
+/* Sección de botones "Ignorar" */
+.gc-ttip-ignore {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* Botón base de ignorar */
+.gc-ignore-word,
+.gc-ignore-rule {
+  display: inline-block;
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.gc-ignore-word:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+.gc-ignore-rule:hover {
+  background: #fdf4ff;
+  border-color: #e879f9;
+  color: #7e22ce;
+}

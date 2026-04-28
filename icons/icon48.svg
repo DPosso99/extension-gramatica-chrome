@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <!-- Fondo circular con gradiente -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#1976D2"/>
+      <stop offset="100%" stop-color="#0D47A1"/>
+    </linearGradient>
+  </defs>
+  <circle cx="24" cy="24" r="23" fill="url(#bg)"/>
+
+  <!-- Letra G -->
+  <text x="24" y="31" text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="28" font-weight="bold" fill="#ffffff">G</text>
+
+  <!-- Subrayado ondulado decorativo (ortografía) -->
+  <path d="M9 40 Q12 37 15 40 Q18 43 21 40 Q24 37 27 40 Q30 43 33 40 Q36 37 39 40"
+        fill="none" stroke="#E53935" stroke-width="2" stroke-linecap="round"/>
+</svg>
