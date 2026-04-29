@@ -103,12 +103,33 @@
   box-sizing: border-box;
 }
 
+/* Botón de cerrar (X) */
+.gc-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: all 0.15s;
+}
+.gc-close:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
 /* Título corto del error */
 .gc-ttip-title {
   font-weight: 600;
   font-size: 14px;
   color: #0f172a;
   margin-bottom: 4px;
+  padding-right: 20px; /* espacio para la X */
 }
 
 /* Descripción larga del error */
@@ -116,6 +137,7 @@
   color: #475569;
   margin-bottom: 12px;
   font-size: 13px;
+  padding-right: 15px; /* Evita que choque con la X si no hay título */
 }
 
 /* Contenedor de botones de sugerencia */

@@ -25,6 +25,13 @@ chrome.storage.sync.get(['enabled', 'autoCorrect', 'language', 'serverUrl', 'api
   ui.serverUrl.value           = data.serverUrl  || 'http://localhost:8081';
   ui.apiKey.value              = data.apiKey     || '';
 
+  // Leer estado rápido en caché
+  chrome.storage.local.get(['lastStatus'], localData => {
+    if (localData.lastStatus && localData.lastStatus.state === 'online') {
+      setStatus('online', localData.lastStatus.text);
+    }
+  });
+
   verifyServer(ui.serverUrl.value, ui.apiKey.value);
 });
 
@@ -122,9 +129,11 @@ function setStatus(state, text) {
   if (state === 'online') {
     dot.classList.add('dot-on');
     lbl.textContent = text || 'Servidor activo';
+    chrome.storage.local.set({ lastStatus: { state: 'online', text: lbl.textContent } });
   } else if (state === 'offline') {
     dot.classList.add('dot-off');
     lbl.textContent = text || 'Servidor desconectado';
+    chrome.storage.local.set({ lastStatus: { state: 'offline', text: lbl.textContent } });
   } else {
     dot.classList.add('dot-wait');
     lbl.textContent = text || 'Verificando…';

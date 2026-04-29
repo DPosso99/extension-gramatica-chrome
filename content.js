@@ -215,6 +215,12 @@
       if (match.rule?.id) onIgnoreRule(match.rule.id);
       hideTooltip();
     });
+
+    // Botón de cerrar (X)
+    tooltipEl.querySelector('.gc-close')?.addEventListener('click', e => {
+      e.stopPropagation();
+      hideTooltip();
+    });
   }
 
   function scheduleHide() {
@@ -224,6 +230,13 @@
   function hideTooltip() {
     if (tooltipEl) tooltipEl.style.display = 'none';
   }
+
+  // Tecla Escape para cerrar tooltip
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      hideTooltip();
+    }
+  });
 
   // ════════════════════════════════════════════════════════════════════════════
   // TextareaChecker — overlay transparente sobre <textarea>
@@ -356,10 +369,14 @@
 
     _apply(match, suggestion) {
       const el   = this.el;
+      // Obtener el valor ACTÚAL del textarea, no confiar en el texto viejo
       const text = el.value;
       
       this.clear();
       hideTooltip();
+      
+      // Asegurarnos que no estamos reemplazando fuera de límites
+      if (match.offset > text.length) return;
       
       el.value   = text.slice(0, match.offset) + suggestion + text.slice(match.offset + match.length);
       el.dispatchEvent(new Event('input', { bubbles: true }));
@@ -610,6 +627,15 @@
 
       const startNode = map[si].node, startOff = map[si].off;
       const endNode   = map[ei].node, endOff   = map[ei].off + 1;
+
+      // Comprobar diferencias ANTES de limpiar
+      const currentText = this._buildTextAndMap().text;
+      if (Math.abs(currentText.length - (this._lastText ? this._lastText.length : 0)) > 5) {
+         this.clear();
+         hideTooltip();
+         this._schedule();
+         return;
+      }
 
       this.clear();
       hideTooltip();
