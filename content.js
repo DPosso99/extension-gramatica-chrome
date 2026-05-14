@@ -19,7 +19,7 @@
   ];
 
   // ─── Configuración dinámica ──────────────────────────────────────────────
-  let cfg = { enabled: true, autoCorrect: false, language: 'auto', serverUrl: 'http://localhost:8081', apiKey: '' };
+  let cfg = { enabled: true, autoCorrect: false, language: 'es-CO', serverUrl: 'http://localhost:8081', apiKey: '' };
 
   function loadCfg() {
     return new Promise(resolve =>

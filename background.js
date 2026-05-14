@@ -74,11 +74,6 @@ async function handleCheckText({ text, language, serverUrl, apiKey }) {
     return l;
   })();
 
-  // Forzar deteccion estricta cuando no es auto
-  if (lang !== 'auto') {
-    body.set('language', lang);
-  }
-
   // Caché
   const key = cacheKey(text, lang);
   if (cache.has(key)) {
