@@ -9,6 +9,30 @@
   const DEBOUNCE_MS = 900;       // Espera tras dejar de escribir
   const MIN_LENGTH  = 10;        // Caracteres mínimos para revisar
 
+  // Corrección instantánea para palabras obvias (sin esperar al servidor)
+  const COMMON_TYPOS = {
+    'cmo': 'cómo',
+    'stas': 'estás',
+    'asi': 'así',
+    'q': 'que',
+    'pq': 'porque',
+    'xq': 'porque',
+    'k': 'que',
+    'tambien': 'también',
+    'tmb': 'también',
+    'tmbn': 'también',
+    'ola': 'hola',
+    'acer': 'hacer',
+    'aora': 'ahora',
+    'asta': 'hasta',
+    'enserio': 'en serio',
+    'osea': 'o sea',
+    'qien': 'quién',
+    'quien': 'quién',
+    'porq': 'porque',
+    'atravez': 'a través'
+  };
+
   // Propiedades CSS que se copian al overlay para que el texto quede alineado
   const COPY_STYLES = [
     'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'fontVariant',
@@ -385,10 +409,51 @@
       this._schedule();
     }
 
+    _instantAutoCorrect(key) {
+      const pos = this.el.selectionStart;
+      const text = this.el.value;
+      const wordBoundaries = [' ', '.', ',', '!', '?', ':', ';', '\n', '\r'];
+
+      const boundaryIndex = pos - 1;
+      if (boundaryIndex < 0 || text[boundaryIndex] !== key) return false;
+
+      let wordStart = boundaryIndex;
+      while (wordStart > 0 && !wordBoundaries.includes(text[wordStart - 1])) {
+        wordStart--;
+      }
+
+      if (wordStart < boundaryIndex) {
+        const word = text.slice(wordStart, boundaryIndex);
+        const lower = word.toLowerCase();
+        if (COMMON_TYPOS[lower]) {
+          let replacement = COMMON_TYPOS[lower];
+          if (word[0] === word[0].toUpperCase()) {
+            replacement = replacement.charAt(0).toUpperCase() + replacement.slice(1);
+          }
+          const before = text.slice(0, wordStart);
+          const after = text.slice(boundaryIndex + 1);
+          this.el.value = before + replacement + key + after;
+
+          const newPos = before.length + replacement.length + 1;
+          this.el.setSelectionRange(newPos, newPos);
+          this.el.dispatchEvent(new Event('input', { bubbles: true }));
+          return true;
+        }
+      }
+      return false;
+    }
+
     _onKey(e) {
-      if (!cfg.autoCorrect || !this.matches.length) return;
+      if (!cfg.autoCorrect) return;
       const wordBoundaries = [' ', '.', ',', '!', '?', ':', ';', '\n', '\r'];
       if (!wordBoundaries.includes(e.key)) return;
+
+      if (this._instantAutoCorrect(e.key)) {
+        this._schedule();
+        return;
+      }
+
+      if (!this.matches.length) return;
 
       const cursorPos = this.el.selectionStart;
       // Buscar el último error ortográfico que terminó justo antes del cursor
@@ -593,10 +658,61 @@
       }
     }
 
+    _instantAutoCorrect(key) {
+      const sel = window.getSelection();
+      if (!sel || !sel.isCollapsed || sel.rangeCount === 0) return false;
+
+      const range = sel.getRangeAt(0);
+      const node = range.startContainer;
+      const offset = range.startOffset;
+
+      if (node.nodeType !== Node.TEXT_NODE) return false;
+
+      const text = node.textContent;
+      const wordBoundaries = [' ', '.', ',', '!', '?', ':', ';', '\n', '\r'];
+
+      const boundaryIndex = offset - 1;
+      if (boundaryIndex < 0 || text[boundaryIndex] !== key) return false;
+
+      let wordStart = boundaryIndex;
+      while (wordStart > 0 && !wordBoundaries.includes(text[wordStart - 1])) {
+        wordStart--;
+      }
+
+      if (wordStart < boundaryIndex) {
+        const word = text.slice(wordStart, boundaryIndex);
+        const lower = word.toLowerCase();
+        if (COMMON_TYPOS[lower]) {
+          let replacement = COMMON_TYPOS[lower];
+          if (word[0] === word[0].toUpperCase()) {
+            replacement = replacement.charAt(0).toUpperCase() + replacement.slice(1);
+          }
+
+          const r = document.createRange();
+          r.setStart(node, wordStart);
+          r.setEnd(node, boundaryIndex + 1);
+          sel.removeAllRanges();
+          sel.addRange(r);
+
+          this.el.focus();
+          document.execCommand('insertText', false, replacement + key);
+          return true;
+        }
+      }
+      return false;
+    }
+
     _onKey(e) {
-      if (!cfg.autoCorrect || !this.matches.length) return;
+      if (!cfg.autoCorrect) return;
       const wordBoundaries = [' ', '.', ',', '!', '?', ':', ';', '\n', '\r'];
       if (!wordBoundaries.includes(e.key)) return;
+
+      if (this._instantAutoCorrect(e.key)) {
+        this._schedule();
+        return;
+      }
+
+      if (!this.matches.length) return;
 
       // Obtener offset del cursor en el texto plano
       let cursorPos = -1;
