@@ -67,12 +67,17 @@ async function handleCheckText({ text, language, serverUrl, apiKey }) {
   const base = (serverUrl || 'http://localhost:8081').replace(/\/$/, '');
   const lang = (() => {
     const l = language || 'auto';
-    // Si la variante no existe en LT (que usa es o es-AR), la forzamos a español general
-    // o al idioma base (es).
     if (l === 'auto') return 'auto';
+    // LanguageTool local solo soporta: es, es-AR, es-ES
+    // Si el usuario elige es-CO u otra variante, usar 'es' (español generico)
     if (l.startsWith('es-') && l !== 'es-AR' && l !== 'es-ES') return 'es';
     return l;
   })();
+
+  // Forzar deteccion estricta cuando no es auto
+  if (lang !== 'auto') {
+    body.set('language', lang);
+  }
 
   // Caché
   const key = cacheKey(text, lang);
@@ -88,15 +93,9 @@ async function handleCheckText({ text, language, serverUrl, apiKey }) {
   });
 
   // Si está en auto-detección, dar pistas de idioma preferido (ES + EN)
-  // para que no detecte portugués u otros idiomas similares al español
   if (lang === 'auto') {
     body.set('preferredLanguages', 'es,en');
     body.set('preferredVariants', 'es-ES,en-US');
-  } else {
-    // Si NO está en auto, forzar strict language
-    // esto previene que un "es-CO" mal mapeado o confuso
-    // caiga en idioma tagalo (tl) o portugués
-    body.set('language', lang);
   }
 
   const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
@@ -133,7 +132,7 @@ async function handleCheckStatus(serverUrl, apiKey) {
   const response = await fetch(`${base}/v2/languages`, {
     method: 'GET',
     headers,
-    signal: AbortSignal.timeout(2000),
+    signal: AbortSignal.timeout(5000),
   });
 
   if (!response.ok) {

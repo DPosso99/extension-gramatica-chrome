@@ -663,7 +663,7 @@
 
         const sel = window.getSelection();
 
-        // Seleccionar el texto incorrecto
+        // Estrategia: seleccionar el texto incorrecto, borrarlo e insertar la correccion
         const r1 = document.createRange();
         r1.setStart(startNode, startOff);
         r1.setEnd(endNode, endOff);
@@ -672,29 +672,24 @@
         // Verificar que lo seleccionado coincide con lo que queremos corregir
         const selText = sel ? sel.toString() : r1.toString();
         const expected = freshText.slice(match.offset, match.offset + match.length);
-        const textsMatch = selText === expected || selText.toLowerCase() === expected.toLowerCase();
 
-        if (textsMatch) {
-          // Borrar primero, luego insertar (mas fiable en Gmail y editores complejos)
+        if (selText === expected || selText.toLowerCase() === expected.toLowerCase()) {
+          // Los offsets coinciden: borrar seleccion + insertar correccion
+          document.execCommand('delete', false, null);
+          document.execCommand('insertText', false, suggestion);
+        } else if (selText.length > 0) {
+          // Los offsets no coinciden pero tenemos algo seleccionado
+          // Intentar con lo que esta seleccionado (puede ser Gmail que redistribuyo el DOM)
           document.execCommand('delete', false, null);
           document.execCommand('insertText', false, suggestion);
         } else {
-          // Offsets desincronizados: buscar el texto en el editor y reemplazar
-          const allText = this.el.innerText || this.el.textContent;
-          const idx = allText.indexOf(expected);
-          if (idx !== -1) {
-            const newText = allText.slice(0, idx) + suggestion + allText.slice(idx + expected.length);
-            this.el.textContent = newText;
-            this.el.dispatchEvent(new Event('input', { bubbles: true }));
-          } else {
-            this._schedule();
-            return;
-          }
+          // No se pudo seleccionar nada, reescanear
+          this._schedule();
+          return;
         }
       } catch {
-        const full = freshText;
-        this.el.textContent = full.slice(0, match.offset) + suggestion + full.slice(match.offset + match.length);
-        this.el.dispatchEvent(new Event('input', { bubbles: true }));
+        // Ultimo recurso: no usar textContent (destruye HTML de editores)
+        this._schedule();
       }
 
       this._schedule();
