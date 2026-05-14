@@ -628,26 +628,37 @@
       const startNode = map[si].node, startOff = map[si].off;
       const endNode   = map[ei].node, endOff   = map[ei].off + 1;
 
-      // Comprobar diferencias ANTES de limpiar
-      const currentText = this._buildTextAndMap().text;
-      if (Math.abs(currentText.length - (this._lastText ? this._lastText.length : 0)) > 5) {
-         this.clear();
-         hideTooltip();
-         this._schedule();
-         return;
+      // Validar que los nodos sigan en el DOM
+      if (!startNode || !endNode || !startNode.isConnected || !endNode.isConnected) {
+        this.clear();
+        hideTooltip();
+        this._schedule();
+        return;
+      }
+      if (startOff > startNode.length || endOff > endNode.length) {
+        this.clear();
+        hideTooltip();
+        this._schedule();
+        return;
       }
 
       this.clear();
       hideTooltip();
 
       try {
-        const r = new Range();
-        // Validar offsets antes de usarlos
-        if (startOff > startNode.length || endOff > endNode.length) {
-          throw new Error('stale charMap');
-        }
+        const r = document.createRange();
         r.setStart(startNode, startOff);
         r.setEnd(endNode, endOff);
+
+        // Verificar que el texto seleccionado coincide con lo que esperamos corregir
+        const selectedText = r.toString();
+        const expectedText = this._lastText
+          ? this._lastText.slice(match.offset, match.offset + match.length)
+          : null;
+        if (expectedText !== null && selectedText !== expectedText && selectedText.length !== match.length) {
+          this._schedule();
+          return;
+        }
 
         const sel = window.getSelection();
         if (sel) {
@@ -655,12 +666,13 @@
           sel.addRange(r);
         }
 
-        // execCommand es compatible con editores complejos (Notion, Docs, etc.)
-        // porque pasa por el sistema de eventos nativo en lugar de modificar el DOM directamente
+        // Intentar con insertText (respeta editores complejos como Gmail)
         const ok = document.execCommand('insertText', false, suggestion);
 
         if (!ok) {
-          // Fallback para editores que no soportan execCommand
+          // Fallback: borrar selección y reinsertar manualmente
+          sel.removeAllRanges();
+          sel.addRange(r);
           r.deleteContents();
           const newNode = document.createTextNode(suggestion);
           r.insertNode(newNode);
@@ -676,7 +688,7 @@
           this.el.dispatchEvent(new Event('input', { bubbles: true }));
         }
       } catch {
-        const full = this._lastText || this._buildTextAndMap().text;
+        const full = this._buildTextAndMap().text;
         this.el.textContent = full.slice(0, match.offset) + suggestion + full.slice(match.offset + match.length);
         this.el.dispatchEvent(new Event('input', { bubbles: true }));
       }
