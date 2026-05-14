@@ -620,22 +620,27 @@
     }
 
     _apply(match, suggestion) {
-      const map = this._charMap;
-      if (!map || match.offset >= map.length) return;
-      const si = match.offset, ei = match.offset + match.length - 1;
-      if (ei >= map.length) return;
-
-      const startNode = map[si].node, startOff = map[si].off;
-      const endNode   = map[ei].node, endOff   = map[ei].off + 1;
-
-      // Validar que los nodos sigan en el DOM
-      if (!startNode || !endNode || !startNode.isConnected || !endNode.isConnected) {
+      // Reconstruir el mapa antes de intentar, para tener offsets frescos
+      const { text: freshText, map: freshMap } = this._buildTextAndMap();
+      if (!freshMap || match.offset >= freshMap.length) {
         this.clear();
         hideTooltip();
         this._schedule();
         return;
       }
-      if (startOff > startNode.length || endOff > endNode.length) {
+
+      const si = match.offset;
+      const ei = match.offset + match.length - 1;
+      if (ei >= freshMap.length) {
+        this.clear();
+        hideTooltip();
+        this._schedule();
+        return;
+      }
+
+      const startEntry = freshMap[si];
+      const endEntry   = freshMap[ei];
+      if (!startEntry || !endEntry) {
         this.clear();
         hideTooltip();
         this._schedule();
@@ -646,19 +651,19 @@
       hideTooltip();
 
       try {
-        const r = document.createRange();
-        r.setStart(startNode, startOff);
-        r.setEnd(endNode, endOff);
+        const startNode = startEntry.node;
+        const startOff  = startEntry.off;
+        const endNode   = endEntry.node;
+        const endOff    = endEntry.off + 1;
 
-        // Verificar que el texto seleccionado coincide con lo que esperamos corregir
-        const selectedText = r.toString();
-        const expectedText = this._lastText
-          ? this._lastText.slice(match.offset, match.offset + match.length)
-          : null;
-        if (expectedText !== null && selectedText !== expectedText && selectedText.length !== match.length) {
+        if (startOff > startNode.length || endOff > endNode.length) {
           this._schedule();
           return;
         }
+
+        const r = document.createRange();
+        r.setStart(startNode, startOff);
+        r.setEnd(endNode, endOff);
 
         const sel = window.getSelection();
         if (sel) {
@@ -666,13 +671,12 @@
           sel.addRange(r);
         }
 
-        // Intentar con insertText (respeta editores complejos como Gmail)
+        // insertText es el metodo mas compatible con editores complejos (Gmail, docs, etc.)
         const ok = document.execCommand('insertText', false, suggestion);
 
         if (!ok) {
-          // Fallback: borrar selección y reinsertar manualmente
-          sel.removeAllRanges();
-          sel.addRange(r);
+          // Fallback: seleccionar, borrar y reinsertar
+          if (sel) { sel.removeAllRanges(); sel.addRange(r); }
           r.deleteContents();
           const newNode = document.createTextNode(suggestion);
           r.insertNode(newNode);
@@ -688,7 +692,8 @@
           this.el.dispatchEvent(new Event('input', { bubbles: true }));
         }
       } catch {
-        const full = this._buildTextAndMap().text;
+        // Ultimo recurso: reemplazar texto plano
+        const full = freshText;
         this.el.textContent = full.slice(0, match.offset) + suggestion + full.slice(match.offset + match.length);
         this.el.dispatchEvent(new Event('input', { bubbles: true }));
       }
