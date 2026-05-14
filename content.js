@@ -145,6 +145,8 @@
     document.documentElement.appendChild(tooltipEl);
     tooltipEl.addEventListener('mouseenter', () => clearTimeout(tooltipHideTimer));
     tooltipEl.addEventListener('mouseleave', scheduleHide);
+    // Evitar que el clic en el tooltip robe el foco del editor
+    tooltipEl.addEventListener('mousedown', e => e.preventDefault());
   }
 
   function showTooltip(rect, match, word, onApply, onIgnoreWord, onIgnoreRule) {
@@ -661,9 +663,11 @@
           return;
         }
 
+        // Recuperar foco para que execCommand no falle o se aplique en el aire
+        this.el.focus();
         const sel = window.getSelection();
 
-        // Estrategia: seleccionar el texto incorrecto, borrarlo e insertar la correccion
+        // Estrategia: seleccionar el texto incorrecto e insertar la correccion (reemplaza)
         const r1 = document.createRange();
         r1.setStart(startNode, startOff);
         r1.setEnd(endNode, endOff);
@@ -674,13 +678,10 @@
         const expected = freshText.slice(match.offset, match.offset + match.length);
 
         if (selText === expected || selText.toLowerCase() === expected.toLowerCase()) {
-          // Los offsets coinciden: borrar seleccion + insertar correccion
-          document.execCommand('delete', false, null);
+          // Reemplazar la selección atómicamente
           document.execCommand('insertText', false, suggestion);
         } else if (selText.length > 0) {
-          // Los offsets no coinciden pero tenemos algo seleccionado
-          // Intentar con lo que esta seleccionado (puede ser Gmail que redistribuyo el DOM)
-          document.execCommand('delete', false, null);
+          // Intentar con lo que está seleccionado (puede ser Gmail que redistribuyó el DOM)
           document.execCommand('insertText', false, suggestion);
         } else {
           // No se pudo seleccionar nada, reescanear
@@ -754,6 +755,16 @@
         }
       }
     }).observe(document.body, { childList: true, subtree: true });
+
+    // Catch dinámico para editores que cambian contenteditable después de insertados (ej. Gmail)
+    document.addEventListener('focusin', e => {
+      const el = e.target;
+      if (el && el.nodeType === Node.ELEMENT_NODE) {
+        if (el.tagName === 'TEXTAREA' || el.contentEditable === 'true') {
+          attach(el);
+        }
+      }
+    });
   }
 
   if (document.readyState === 'loading') {
