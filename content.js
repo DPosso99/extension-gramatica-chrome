@@ -534,6 +534,11 @@
             text += node.textContent[i];
           }
         } else if (node.nodeType === Node.ELEMENT_NODE) {
+          // IGNORAR firmas de Gmail y correos anteriores citados para evitar cuellos de botella y desincronización
+          if (node.classList && (node.classList.contains('gmail_quote') || node.classList.contains('gmail_signature'))) {
+            return;
+          }
+
           if (node.tagName === 'BR') { ensureNewline(); return; }
           const isBlock = BLOCK.has(node.tagName);
           if (isBlock) ensureNewline();

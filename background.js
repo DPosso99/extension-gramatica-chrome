@@ -103,7 +103,8 @@ async function handleCheckText({ text, language, serverUrl, apiKey }) {
     method: 'POST',
     headers,
     body: body.toString(),
-    signal: AbortSignal.timeout(3500),
+    // Aumentado a 10s para permitir que textos largos (correos largos) se procesen localmente sin crashear
+    signal: AbortSignal.timeout(10000),
   });
 
   if (!response.ok) {
