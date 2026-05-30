@@ -14,27 +14,242 @@
 
   // Corrección instantánea para palabras obvias (sin esperar al servidor)
   const COMMON_TYPOS = {
-    'cmo': 'cómo',
-    'stas': 'estás',
-    'asi': 'así',
+    // Sin tilde en interrogativos / exclamativos
     'q': 'que',
+    'k': 'que',
+    'como': 'cómo',
+    'cuando': 'cuándo',
+    'donde': 'dónde',
+    'que': 'qué',
+    'quien': 'quién',
+    'qien': 'quién',
+    'quienes': 'quiénes',
+    'cual': 'cuál',
+    'cuales': 'cuáles',
+    'cuanto': 'cuánto',
+    'cuantos': 'cuántos',
+    'cuanta': 'cuánta',
+    'cuantas': 'cuántas',
+
+    // Chat / abreviaturas
     'pq': 'porque',
     'xq': 'porque',
-    'k': 'que',
-    'tambien': 'también',
+    'porq': 'porque',
+    'xfa': 'por favor',
     'tmb': 'también',
     'tmbn': 'también',
+    'tkm': 'te quiero mucho',
+    'nvn': 'no vino',
+    'bn': 'bien',
+    'stas': 'estás',
+    'tas': 'estás',
+    'stoy': 'estoy',
+    'cmo': 'cómo',
     'ola': 'hola',
+    'klk': 'qué lo que',
+
+    // Palabras sin tilde (agudas terminadas en n/s/vocal)
+    'accion': 'acción',
+    'cancion': 'canción',
+    'corazon': 'corazón',
+    'direccion': 'dirección',
+    'educacion': 'educación',
+    'informacion': 'información',
+    'nacion': 'nación',
+    'relacion': 'relación',
+    'situacion': 'situación',
+    'traduccion': 'traducción',
+    'ocasion': 'ocasión',
+    'solucion': 'solución',
+    'poblacion': 'población',
+    'generacion': 'generación',
+    'atencion': 'atención',
+    'opcion': 'opción',
+    'produccion': 'producción',
+    'seccion': 'sección',
+    'construccion': 'construcción',
+    'conexion': 'conexión',
+    'cafe': 'café',
+    'compas': 'compás',
+    'jamas': 'jamás',
+    'ingles': 'inglés',
+    'frances': 'francés',
+    'autobus': 'autobús',
+    'dificil': 'difícil',
+    'facil': 'fácil',
+    'util': 'útil',
+    'arbol': 'árbol',
+    'lapiz': 'lápiz',
+    'carcel': 'cárcel',
+    'habil': 'hábil',
+    'debil': 'débil',
+    'futil': 'fútil',
+    'mastil': 'mástil',
+
+    // Interrogativos sin tilde
+    'porke': 'porque',
+    'comoestas': 'cómo estás',
+    'qondas': 'qué ondas',
+
+    // Verbos comunes sin tilde
+    'esta': 'está',
+    'estan': 'están',
+    'dare': 'daré',
+    'dire': 'diré',
+    'hare': 'haré',
+    'ire': 'iré',
+    'sere': 'seré',
+    'tendre': 'tendré',
+    'vendre': 'vendré',
+    'podre': 'podré',
+    'querre': 'querré',
+    'sabre': 'sabré',
+    'saldre': 'saldré',
+    'pondre': 'pondré',
+    'hablo': 'habló',
+    'hablaste': 'hablaste',
+    'comio': 'comió',
+    'vio': 'vió',
+    'dio': 'dió',
+    'fue': 'fué',
+    'escucho': 'escuchó',
+    'miro': 'miró',
+    'paso': 'pasó',
+    'dejo': 'dejó',
+    'llego': 'llegó',
+
+    // Imperfecto sin tilde
+    'sabia': 'sabía',
+    'tenia': 'tenía',
+    'queria': 'quería',
+    'podia': 'podía',
+    'habia': 'había',
+    'decia': 'decía',
+    'hacia': 'hacía',
+    'venia': 'venía',
+    'ponia': 'ponía',
+    'salia': 'salía',
+    'traia': 'traía',
+    'dormia': 'dormía',
+    'sentia': 'sentía',
+    'pedia': 'pedía',
+    'seguia': 'seguía',
+    'volvia': 'volvía',
+    'corria': 'corría',
+    'escribia': 'escribía',
+
+    // Pronombres sin tilde
+    'el': 'él',
+    'tu': 'tú',
+    'mi': 'mí',
+    'si': 'sí',
+    'se': 'sé',
+    'de': 'dé',
+    'te': 'té',
+    'aun': 'aún',
+    'mas': 'más',
+
+    // Palabras compuestas / patrones
+    'tambien': 'también',
+    'adiós': 'adiós',
+    'mama': 'mamá',
+    'papa': 'papá',
+    'telefono': 'teléfono',
+    'microfono': 'micrófono',
+    'gramatica': 'gramática',
+    'ortografia': 'ortografía',
+    'matematicas': 'matemáticas',
+    'fisica': 'física',
+    'quimica': 'química',
+    'politica': 'política',
+    'musica': 'música',
+    'practica': 'práctica',
+    'fabrica': 'fábrica',
+    'medico': 'médico',
+    'sabado': 'sábado',
+    'miercoles': 'miércoles',
+
+    // H faltante
     'acer': 'hacer',
     'aora': 'ahora',
     'asta': 'hasta',
+    'abia': 'había',
+    'ablar': 'hablar',
+    'aci': 'hací',
+    'ay': 'hay',
+    'echo': 'hecho',
+    'ermano': 'hermano',
+    'istoria': 'historia',
+    'ola': 'hola',
+    'ueso': 'hueso',
+    'uevo': 'huevo',
+    'ablando': 'hablando',
+
+    // Misceláneos
+    'asi': 'así',
     'enserio': 'en serio',
     'osea': 'o sea',
-    'qien': 'quién',
-    'quien': 'quién',
-    'porq': 'porque',
-    'atravez': 'a través'
+    'atravez': 'a través',
+    'aveces': 'a veces',
+    'apesar': 'a pesar',
+    'derrepente': 'de repente',
+    'apenas': 'apenas',
+    'haci': 'hací',
+    'hay': 'hay',
+    'aiga': 'haya',
+    'dijistes': 'dijiste',
+    'venistes': 'viniste',
+    'hicistes': 'hiciste',
+    'fuistes': 'fuiste',
+    'pusistes': 'pusiste',
+    'nadien': 'nadie',
+    'naiden': 'nadie',
+    'pecsi': 'Pepsi',
+    'diferencia': 'diferencia',
   };
+
+  // ─── Reglas de patrón para acentuación ──────────────────────────────────
+  // Se aplican DESPUÉS del diccionario, como fallback para palabras no listadas.
+  const ACCENT_RULES = [
+    // -cion sin tilde -> -ción (muy fiable, falso positivo casi inexistente)
+    { pattern: /^([a-záéíóúüñ]{3,})cion$/i, replacement: '$1ción' },
+    // -sion sin tilde -> -sión
+    { pattern: /^([a-záéíóúüñ]{2,})sion$/i, replacement: '$1sión' },
+    // Verbos en -ia (imperfecto) sin tilde: sabia, tenia, queria, podia...
+    { pattern: /^(sab|ten|quer|pod|hab|dec|hac|ven|pon|sal|tra|dorm|sent|ped|segu|volv|corr|escrib)ia$/i, replacement: '$1ía' },
+    // Verbos en -re (futuro) sin tilde: dare, dire, hare, ire...
+    { pattern: /^(da|di|ha|i|se|ten|ven|pod|quer|sab|sal|pon|dir|har|ser)re$/i, replacement: '$1ré' },
+    // -mente sin tilde en la raiz: facilmente, rapidamente...
+    { pattern: /^(facil|dificil|rapid|agil|util|habil|debil|futil|comod|practic)mente$/i, replacement: '$1mente' },
+    // Adverbios terminados en -icamente: practicamente, basicamente...
+    { pattern: /^([a-z]{3,})icamente$/i, replacement: '$1ícamente' },
+  ];
+
+  // Busca corrección: primero diccionario, luego reglas de patrón
+  function findCorrection(word) {
+    const lower = word.toLowerCase();
+    if (COMMON_TYPOS[lower]) {
+      let replacement = COMMON_TYPOS[lower];
+      if (word[0] === word[0].toUpperCase()) {
+        replacement = replacement.charAt(0).toUpperCase() + replacement.slice(1);
+      }
+      return replacement;
+    }
+    // Fallback: reglas de patrón (solo si la palabra tiene al menos 4 letras)
+    if (lower.length >= 4) {
+      for (const rule of ACCENT_RULES) {
+        const m = lower.match(rule.pattern);
+        if (m) {
+          let replacement = lower.replace(rule.pattern, rule.replacement);
+          if (word[0] === word[0].toUpperCase()) {
+            replacement = replacement.charAt(0).toUpperCase() + replacement.slice(1);
+          }
+          return replacement;
+        }
+      }
+    }
+    return null;
+  }
 
   // Propiedades CSS que se copian al overlay para que el texto quede alineado
   const COPY_STYLES = [
@@ -133,12 +348,8 @@
 
     if (wordStart < boundaryIndex) {
       const word = text.slice(wordStart, boundaryIndex);
-      const lower = word.toLowerCase();
-      if (COMMON_TYPOS[lower]) {
-        let replacement = COMMON_TYPOS[lower];
-        if (word[0] === word[0].toUpperCase()) {
-          replacement = replacement.charAt(0).toUpperCase() + replacement.slice(1);
-        }
+      const replacement = findCorrection(word);
+      if (replacement) {
         const before = text.slice(0, wordStart);
         const after = text.slice(boundaryIndex + 1);
         el.value = before + replacement + key + after;
@@ -172,12 +383,8 @@
 
     if (wordStart < boundaryIndex) {
       const word = text.slice(wordStart, boundaryIndex);
-      const lower = word.toLowerCase();
-      if (COMMON_TYPOS[lower]) {
-        let replacement = COMMON_TYPOS[lower];
-        if (word[0] === word[0].toUpperCase()) {
-          replacement = replacement.charAt(0).toUpperCase() + replacement.slice(1);
-        }
+      const replacement = findCorrection(word);
+      if (replacement) {
         const r = document.createRange();
         r.setStart(node, wordStart);
         r.setEnd(node, boundaryIndex + 1);
