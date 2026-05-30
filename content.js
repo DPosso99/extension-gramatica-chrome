@@ -14,24 +14,9 @@
 
   // Corrección instantánea para palabras obvias (sin esperar al servidor)
   const COMMON_TYPOS = {
-    // Sin tilde en interrogativos / exclamativos
+    // Chat / abreviaturas (SIEMPRE corregir, no son palabras reales)
     'q': 'que',
     'k': 'que',
-    'como': 'cómo',
-    'cuando': 'cuándo',
-    'donde': 'dónde',
-    'que': 'qué',
-    'quien': 'quién',
-    'qien': 'quién',
-    'quienes': 'quiénes',
-    'cual': 'cuál',
-    'cuales': 'cuáles',
-    'cuanto': 'cuánto',
-    'cuantos': 'cuántos',
-    'cuanta': 'cuánta',
-    'cuantas': 'cuántas',
-
-    // Chat / abreviaturas
     'pq': 'porque',
     'xq': 'porque',
     'porq': 'porque',
@@ -39,7 +24,6 @@
     'tmb': 'también',
     'tmbn': 'también',
     'tkm': 'te quiero mucho',
-    'nvn': 'no vino',
     'bn': 'bien',
     'stas': 'estás',
     'tas': 'estás',
@@ -48,7 +32,7 @@
     'ola': 'hola',
     'klk': 'qué lo que',
 
-    // Palabras sin tilde (agudas terminadas en n/s/vocal)
+    // Palabras con tilde omitida (NUNCA son válidas sin tilde)
     'accion': 'acción',
     'cancion': 'canción',
     'corazon': 'corazón',
@@ -86,14 +70,7 @@
     'futil': 'fútil',
     'mastil': 'mástil',
 
-    // Interrogativos sin tilde
-    'porke': 'porque',
-    'comoestas': 'cómo estás',
-    'qondas': 'qué ondas',
-
-    // Verbos comunes sin tilde
-    'esta': 'está',
-    'estan': 'están',
+    // Verbos futuro sin tilde (NUNCA válidos sin tilde)
     'dare': 'daré',
     'dire': 'diré',
     'hare': 'haré',
@@ -106,19 +83,8 @@
     'sabre': 'sabré',
     'saldre': 'saldré',
     'pondre': 'pondré',
-    'hablo': 'habló',
-    'hablaste': 'hablaste',
-    'comio': 'comió',
-    'vio': 'vió',
-    'dio': 'dió',
-    'fue': 'fué',
-    'escucho': 'escuchó',
-    'miro': 'miró',
-    'paso': 'pasó',
-    'dejo': 'dejó',
-    'llego': 'llegó',
 
-    // Imperfecto sin tilde
+    // Imperfecto sin tilde (NUNCA válidos sin tilde)
     'sabia': 'sabía',
     'tenia': 'tenía',
     'queria': 'quería',
@@ -138,38 +104,7 @@
     'corria': 'corría',
     'escribia': 'escribía',
 
-    // Pronombres sin tilde
-    'el': 'él',
-    'tu': 'tú',
-    'mi': 'mí',
-    'si': 'sí',
-    'se': 'sé',
-    'de': 'dé',
-    'te': 'té',
-    'aun': 'aún',
-    'mas': 'más',
-
-    // Palabras compuestas / patrones
-    'tambien': 'también',
-    'adiós': 'adiós',
-    'mama': 'mamá',
-    'papa': 'papá',
-    'telefono': 'teléfono',
-    'microfono': 'micrófono',
-    'gramatica': 'gramática',
-    'ortografia': 'ortografía',
-    'matematicas': 'matemáticas',
-    'fisica': 'física',
-    'quimica': 'química',
-    'politica': 'política',
-    'musica': 'música',
-    'practica': 'práctica',
-    'fabrica': 'fábrica',
-    'medico': 'médico',
-    'sabado': 'sábado',
-    'miercoles': 'miércoles',
-
-    // H faltante
+    // H faltante (NUNCA son válidas sin H)
     'acer': 'hacer',
     'aora': 'ahora',
     'asta': 'hasta',
@@ -180,32 +115,117 @@
     'echo': 'hecho',
     'ermano': 'hermano',
     'istoria': 'historia',
-    'ola': 'hola',
     'ueso': 'hueso',
     'uevo': 'huevo',
     'ablando': 'hablando',
 
-    // Misceláneos
+    // Misspelling con letras intercambiadas (NUNCA son palabras válidas)
+    'desicion': 'decisión',
+    'presicion': 'precisión',
+    'conprencion': 'comprensión',
+    'resolucion': 'resolución',
+    'admicion': 'admisión',
+    'espontaneo': 'espontáneo',
+    'instantaneo': 'instantáneo',
+    'momentaneo': 'momentáneo',
+    'coetaneo': 'coetáneo',
+
+    // Letras faltantes (claramente incompletas, no son palabras reales)
+    'corzon': 'corazón',
+    'spero': 'espero',
+    'mejra': 'mejora',
+    'poblema': 'problema',
+    'progama': 'programa',
+    'pograma': 'programa',
+    'pogramacion': 'programación',
+
+    // Letras intercambiadas (j por g, etc. - no son palabras válidas)
+    'cojer': 'coger',
+    'esoger': 'escoger',
+    'protejer': 'proteger',
+    'correjir': 'corregir',
+    'elije': 'elige',
+    'dirije': 'dirige',
+    'exije': 'exige',
+    'sujiere': 'sugiere',
+    'vijilar': 'vigilar',
+    'cojido': 'cogido',
+    'recojer': 'recoger',
+    'encojer': 'encoger',
+    'surjir': 'surgir',
+    'urjir': 'urgir',
+    'emerjer': 'emergir',
+    'sumerjir': 'sumergir',
+    'converjer': 'convergir',
+    'diverjir': 'divergir',
+    'maldecio': 'maldijo',
+
+    // Confusiones b/v y s/c/z (palabras claramente inválidas)
+    'vastante': 'bastante',
+    'vien': 'bien',
+    'vueno': 'bueno',
+    'vuscar': 'buscar',
+    'cavesa': 'cabeza',
+    'siudad': 'ciudad',
+    'sirco': 'circo',
+    'nesesito': 'necesito',
+    'conosco': 'conozco',
+    'ofresco': 'ofrezco',
+    'agradesco': 'agradezco',
+    'pertenesco': 'pertenezco',
+    'establesco': 'establezco',
+
+    // Esdrújulas sin tilde (NUNCA válidas sin tilde)
+    'gramatica': 'gramática',
+    'ortografia': 'ortografía',
+    'matematicas': 'matemáticas',
+    'fisica': 'física',
+    'quimica': 'química',
+    'politica': 'política',
+    'musica': 'música',
+    'fabrica': 'fábrica',
+    'medico': 'médico',
+    'sabado': 'sábado',
+    'miercoles': 'miércoles',
+    'microfono': 'micrófono',
+    'telefono': 'teléfono',
+    'mama': 'mamá',
+    'papa': 'papá',
+    'practica': 'práctica',
+
+    // Errores comunes (claramente no válidos)
+    'tambien': 'también',
     'asi': 'así',
+    'ademas': 'además',
+    'atravez': 'a través',
     'enserio': 'en serio',
     'osea': 'o sea',
-    'atravez': 'a través',
     'aveces': 'a veces',
     'apesar': 'a pesar',
     'derrepente': 'de repente',
-    'apenas': 'apenas',
-    'haci': 'hací',
-    'hay': 'hay',
-    'aiga': 'haya',
+    'nadien': 'nadie',
+    'naiden': 'nadie',
     'dijistes': 'dijiste',
     'venistes': 'viniste',
     'hicistes': 'hiciste',
     'fuistes': 'fuiste',
     'pusistes': 'pusiste',
-    'nadien': 'nadie',
-    'naiden': 'nadie',
-    'pecsi': 'Pepsi',
-    'diferencia': 'diferencia',
+    'aiga': 'haya',
+
+    // Palabras con patrón -mente sin tilde en raíz
+    'facilmente': 'fácilmente',
+    'dificilmente': 'difícilmente',
+    'rapidamente': 'rápidamente',
+    'agilmente': 'ágilmente',
+    'utilmente': 'útilmente',
+    'habilmente': 'hábilmente',
+    'debilmente': 'débilmente',
+    'comodamente': 'cómodamente',
+    'practicamente': 'prácticamente',
+    'basicamente': 'básicamente',
+    'tecniciamente': 'técnicamente',
+    'logicamente': 'lógicamente',
+    'automaticamente': 'automáticamente',
   };
 
   // ─── Reglas de patrón para acentuación ──────────────────────────────────
@@ -225,9 +245,25 @@
     { pattern: /^([a-z]{3,})icamente$/i, replacement: '$1ícamente' },
   ];
 
+  // Palabras válidas en español sin tilde — NUNCA auto-corregir aunque exista versión con tilde.
+  // Son palabras que cambian de significado con/sin tilde y dependen del contexto.
+  const PROTECTED_WORDS = new Set([
+    'como', 'cuando', 'donde', 'que', 'quien', 'quienes', 'cual', 'cuales',
+    'cuanto', 'cuantos', 'cuanta', 'cuantas',
+    'el', 'tu', 'mi', 'si', 'se', 'de', 'te', 'aun', 'mas',
+    'este', 'esta', 'estos', 'estas', 'ese', 'esa', 'esos', 'esas',
+    'aquel', 'aquella', 'aquellos', 'aquellas',
+    'solo', 'sola', 'solos', 'solas',
+    'porque',
+  ]);
+
   // Busca corrección: primero diccionario, luego reglas de patrón
   function findCorrection(word) {
     const lower = word.toLowerCase();
+
+    // Si es una palabra que YA existe en español sin tilde, no tocar (depende del contexto)
+    if (PROTECTED_WORDS.has(lower)) return null;
+
     if (COMMON_TYPOS[lower]) {
       let replacement = COMMON_TYPOS[lower];
       if (word[0] === word[0].toUpperCase()) {
