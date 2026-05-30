@@ -4,7 +4,7 @@
 'use strict';
 
 // ─── Mantener el Service Worker vivo (MV3 lo duerme tras 30s) ───────────────
-chrome.alarms.create('keepAlive', { periodInMinutes: 0.4 }); // cada ~24 segundos
+chrome.alarms.create('keepAlive', { periodInMinutes: 0.45 }); // cada ~27 segundos
 chrome.alarms.onAlarm.addListener(alarm => {
   if (alarm.name === 'keepAlive') {
     // Leer storage fuerza al SW a mantenerse activo
@@ -27,9 +27,17 @@ chrome.runtime.onInstalled.addListener(notifyAllTabs);
 const cache = new Map();
 const CACHE_MAX = 100;
 
+function simpleHash(str) {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash) + str.charCodeAt(i);
+    hash = hash & hash; // convertir a 32-bit
+  }
+  return Math.abs(hash).toString(36);
+}
+
 function cacheKey(text, language) {
-  // Hash liviano: primeros 200 chars + longitud + idioma
-  return `${language}::${text.length}::${text.slice(0, 200)}`;
+  return `${language}::${simpleHash(text)}`;
 }
 
 function addToCache(key, value) {
@@ -103,12 +111,11 @@ async function handleCheckText({ text, language, serverUrl, apiKey }) {
     method: 'POST',
     headers,
     body: body.toString(),
-    // Aumentado a 10s para permitir que textos largos (correos largos) se procesen localmente sin crashear
-    signal: AbortSignal.timeout(10000),
+    signal: AbortSignal.timeout(8000),
   });
 
   if (!response.ok) {
-    throw new Error(`Error del servidor: ${response.status}`);
+    throw new Error(`Error del servidor: ${response.status}${response.status === 503 ? ' (sobrecarga)' : ''}`);
   }
 
   const data = await response.json();

@@ -76,7 +76,6 @@ async function verifyServer(rawUrl, apiKey) {
 
   const url = sanitizeUrl(rawUrl) || 'http://localhost:8081';
 
-  // Intentar hasta 3 veces con timeout explícito (el SW puede estar despertando)
   function sendWithTimeout(payload, ms) {
     return Promise.race([
       chrome.runtime.sendMessage(payload),
@@ -85,17 +84,17 @@ async function verifyServer(rawUrl, apiKey) {
   }
 
   let res;
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
       res = await sendWithTimeout({
         action: 'checkServerStatus',
         serverUrl: url,
         apiKey: apiKey || '',
-      }, 3000);
-      if (res) break; // respuesta válida
+      }, 4000);
+      if (res) break;
     } catch {
-      if (attempt < 1) {
-        await new Promise(r => setTimeout(r, 600)); // esperar que el SW despierte
+      if (attempt < 2) {
+        await new Promise(r => setTimeout(r, 800));
       }
     }
   }
@@ -111,12 +110,14 @@ async function verifyServer(rawUrl, apiKey) {
       setStatus('offline', 'Servidor no disponible');
       showError(
         'No se puede conectar a LanguageTool.\n' +
-        'Asegúrate de que el servidor esté corriendo en la URL indicada.'
+        '1. Ejecuta start-hidden.vbs en Windows.\n' +
+        '2. Asegúrate de que Java 11+ esté instalado.\n' +
+        '3. Verifica que el puerto 8081 esté libre.'
       );
     }
   } catch {
     setStatus('offline', 'Error de conexión');
-    showError('Ocurrió un error al intentar conectar con el servidor.');
+    showError('No se obtuvo respuesta del servidor. Revisa que el servicio esté activo.');
   }
 }
 

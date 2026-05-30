@@ -6,8 +6,11 @@
   'use strict';
 
   // ─── Constantes ───────────────────────────────────────────────────────────
-  const DEBOUNCE_MS = 900;       // Espera tras dejar de escribir
+  const DEBOUNCE_MS = 500;       // Espera tras dejar de escribir (reducido para mayor rapidez)
   const MIN_LENGTH  = 10;        // Caracteres mínimos para revisar
+
+  // Delimitadores de palabra para auto-corrección
+  const WORD_BOUNDARIES = [' ', '.', ',', '!', '?', ':', ';', '\n', '\r'];
 
   // Corrección instantánea para palabras obvias (sin esperar al servidor)
   const COMMON_TYPOS = {
@@ -116,16 +119,97 @@
     return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  // ─── Autocorrección instantánea compartida (Textarea) ───────────────────
+  function instantCorrectTextarea(el, key) {
+    const pos = el.selectionStart;
+    const text = el.value;
+    const boundaryIndex = pos - 1;
+    if (boundaryIndex < 0 || text[boundaryIndex] !== key) return false;
+
+    let wordStart = boundaryIndex;
+    while (wordStart > 0 && !WORD_BOUNDARIES.includes(text[wordStart - 1])) {
+      wordStart--;
+    }
+
+    if (wordStart < boundaryIndex) {
+      const word = text.slice(wordStart, boundaryIndex);
+      const lower = word.toLowerCase();
+      if (COMMON_TYPOS[lower]) {
+        let replacement = COMMON_TYPOS[lower];
+        if (word[0] === word[0].toUpperCase()) {
+          replacement = replacement.charAt(0).toUpperCase() + replacement.slice(1);
+        }
+        const before = text.slice(0, wordStart);
+        const after = text.slice(boundaryIndex + 1);
+        el.value = before + replacement + key + after;
+        const newPos = before.length + replacement.length + 1;
+        el.setSelectionRange(newPos, newPos);
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // ─── Autocorrección instantánea compartida (ContentEditable) ────────────
+  function instantCorrectEditable(el, key) {
+    const sel = window.getSelection();
+    if (!sel || !sel.isCollapsed || sel.rangeCount === 0) return false;
+
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
+    const offset = range.startOffset;
+    if (node.nodeType !== Node.TEXT_NODE) return false;
+
+    const text = node.textContent;
+    const boundaryIndex = offset - 1;
+    if (boundaryIndex < 0 || text[boundaryIndex] !== key) return false;
+
+    let wordStart = boundaryIndex;
+    while (wordStart > 0 && !WORD_BOUNDARIES.includes(text[wordStart - 1])) {
+      wordStart--;
+    }
+
+    if (wordStart < boundaryIndex) {
+      const word = text.slice(wordStart, boundaryIndex);
+      const lower = word.toLowerCase();
+      if (COMMON_TYPOS[lower]) {
+        let replacement = COMMON_TYPOS[lower];
+        if (word[0] === word[0].toUpperCase()) {
+          replacement = replacement.charAt(0).toUpperCase() + replacement.slice(1);
+        }
+        const r = document.createRange();
+        r.setStart(node, wordStart);
+        r.setEnd(node, boundaryIndex + 1);
+        sel.removeAllRanges();
+        sel.addRange(r);
+        el.focus();
+        document.execCommand('insertText', false, replacement + key);
+        return true;
+      }
+    }
+    return false;
+  }
+
   // ─── Comunicación con el background ─────────────────────────────────────
+  let _checkAbortController = null;
+
   async function checkText(text) {
     if (!cfg.enabled) return null;
+
+    // Cancelar cualquier request anterior en vuelo
+    if (_checkAbortController) {
+      _checkAbortController.abort();
+    }
+    _checkAbortController = new AbortController();
+
     const msg = { action: 'checkText', text, language: cfg.language, serverUrl: cfg.serverUrl, apiKey: cfg.apiKey };
-    // Reintentar una vez si el SW estaba dormido y acaba de despertar
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         return await chrome.runtime.sendMessage(msg);
-      } catch {
-        if (attempt === 0) await new Promise(r => setTimeout(r, 600));
+      } catch (err) {
+        if (_checkAbortController.signal.aborted) return null;
+        if (attempt === 0) await new Promise(r => setTimeout(r, 500));
       }
     }
     return null;
@@ -176,7 +260,7 @@
   function showTooltip(rect, match, word, onApply, onIgnoreWord, onIgnoreRule) {
     clearTimeout(tooltipHideTimer);
 
-    let html = '';
+    let html = '<button class="gc-close" title="Cerrar">&times;</button>';
     if (match.shortMessage)
       html += `<div class="gc-ttip-title">${escHtml(match.shortMessage)}</div>`;
     html += `<div class="gc-ttip-msg">${escHtml(match.message)}</div>`;
@@ -188,6 +272,8 @@
         html += `<button class="gc-sug" data-val="${escAttr(r.value)}">${escHtml(r.value)}</button>`
       );
       html += '</div>';
+    } else {
+      html += '<div class="gc-ttip-empty">Sin sugerencias disponibles</div>';
     }
 
     const catName = match.rule?.category?.name;
@@ -200,24 +286,24 @@
     html += '</div>';
 
     tooltipEl.innerHTML = html;
+    tooltipEl.style.visibility = 'hidden';
     tooltipEl.style.display = 'block';
 
     // Posicionar: abajo si cabe, arriba si no
     const sx = window.scrollX, sy = window.scrollY;
     const vw = window.innerWidth, vh = window.innerHeight;
-    tooltipEl.style.top = '-9999px';
-    tooltipEl.style.left = '0';
     const tw = tooltipEl.offsetWidth;
     const th = tooltipEl.offsetHeight;
     let left = rect.left + sx;
     if (left + tw > sx + vw - 10) left = sx + vw - tw - 10;
     if (left < sx + 5)             left = sx + 5;
-    const spaceBelow = vh - rect.bottom;
+    const spaceBelow = vh - (rect.top + sy);
     const top = spaceBelow >= th + 10
-      ? rect.bottom + sy + 6          // hay espacio abajo
-      : rect.top    + sy - th - 6;    // no hay espacio: va arriba
+      ? rect.top + sy + 6          // hay espacio abajo
+      : rect.top + sy - th - 6;    // no hay espacio: va arriba
     tooltipEl.style.left = left + 'px';
     tooltipEl.style.top  = top  + 'px';
+    tooltipEl.style.visibility = 'visible';
 
     // Sugerencias
     tooltipEl.querySelectorAll('.gc-sug').forEach(btn => {
@@ -409,46 +495,11 @@
       this._schedule();
     }
 
-    _instantAutoCorrect(key) {
-      const pos = this.el.selectionStart;
-      const text = this.el.value;
-      const wordBoundaries = [' ', '.', ',', '!', '?', ':', ';', '\n', '\r'];
-
-      const boundaryIndex = pos - 1;
-      if (boundaryIndex < 0 || text[boundaryIndex] !== key) return false;
-
-      let wordStart = boundaryIndex;
-      while (wordStart > 0 && !wordBoundaries.includes(text[wordStart - 1])) {
-        wordStart--;
-      }
-
-      if (wordStart < boundaryIndex) {
-        const word = text.slice(wordStart, boundaryIndex);
-        const lower = word.toLowerCase();
-        if (COMMON_TYPOS[lower]) {
-          let replacement = COMMON_TYPOS[lower];
-          if (word[0] === word[0].toUpperCase()) {
-            replacement = replacement.charAt(0).toUpperCase() + replacement.slice(1);
-          }
-          const before = text.slice(0, wordStart);
-          const after = text.slice(boundaryIndex + 1);
-          this.el.value = before + replacement + key + after;
-
-          const newPos = before.length + replacement.length + 1;
-          this.el.setSelectionRange(newPos, newPos);
-          this.el.dispatchEvent(new Event('input', { bubbles: true }));
-          return true;
-        }
-      }
-      return false;
-    }
-
     _onKey(e) {
       if (!cfg.autoCorrect) return;
-      const wordBoundaries = [' ', '.', ',', '!', '?', ':', ';', '\n', '\r'];
-      if (!wordBoundaries.includes(e.key)) return;
+      if (!WORD_BOUNDARIES.includes(e.key)) return;
 
-      if (this._instantAutoCorrect(e.key)) {
+      if (instantCorrectTextarea(this.el, e.key)) {
         this._schedule();
         return;
       }
@@ -663,56 +714,11 @@
       }
     }
 
-    _instantAutoCorrect(key) {
-      const sel = window.getSelection();
-      if (!sel || !sel.isCollapsed || sel.rangeCount === 0) return false;
-
-      const range = sel.getRangeAt(0);
-      const node = range.startContainer;
-      const offset = range.startOffset;
-
-      if (node.nodeType !== Node.TEXT_NODE) return false;
-
-      const text = node.textContent;
-      const wordBoundaries = [' ', '.', ',', '!', '?', ':', ';', '\n', '\r'];
-
-      const boundaryIndex = offset - 1;
-      if (boundaryIndex < 0 || text[boundaryIndex] !== key) return false;
-
-      let wordStart = boundaryIndex;
-      while (wordStart > 0 && !wordBoundaries.includes(text[wordStart - 1])) {
-        wordStart--;
-      }
-
-      if (wordStart < boundaryIndex) {
-        const word = text.slice(wordStart, boundaryIndex);
-        const lower = word.toLowerCase();
-        if (COMMON_TYPOS[lower]) {
-          let replacement = COMMON_TYPOS[lower];
-          if (word[0] === word[0].toUpperCase()) {
-            replacement = replacement.charAt(0).toUpperCase() + replacement.slice(1);
-          }
-
-          const r = document.createRange();
-          r.setStart(node, wordStart);
-          r.setEnd(node, boundaryIndex + 1);
-          sel.removeAllRanges();
-          sel.addRange(r);
-
-          this.el.focus();
-          document.execCommand('insertText', false, replacement + key);
-          return true;
-        }
-      }
-      return false;
-    }
-
     _onKey(e) {
       if (!cfg.autoCorrect) return;
-      const wordBoundaries = [' ', '.', ',', '!', '?', ':', ';', '\n', '\r'];
-      if (!wordBoundaries.includes(e.key)) return;
+      if (!WORD_BOUNDARIES.includes(e.key)) return;
 
-      if (this._instantAutoCorrect(e.key)) {
+      if (instantCorrectEditable(this.el, e.key)) {
         this._schedule();
         return;
       }
