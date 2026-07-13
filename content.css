@@ -110,11 +110,34 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Barra superior con botones minimizar/cerrar */
+.gc-ttip-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin: -8px -10px 6px 0;
+}
+
+/* Botón de minimizar (—) */
+.gc-minimize {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: all 0.15s;
+}
+.gc-minimize:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
 /* Botón de cerrar (X) */
 .gc-close {
-  position: absolute;
-  top: 8px;
-  right: 10px;
   background: transparent;
   border: none;
   font-size: 18px;
@@ -130,13 +153,36 @@
   background: #f1f5f9;
 }
 
+/* Cuerpo colapsable del tooltip */
+.gc-ttip-body {
+  overflow: hidden;
+  transition: max-height 0.25s ease, opacity 0.2s ease, margin 0.25s ease;
+  max-height: 600px;
+  opacity: 1;
+}
+
+/* Estado minimizado: oculta el cuerpo */
+.gramchecker-tooltip.gc-minimized .gc-ttip-body {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+}
+
+.gramchecker-tooltip.gc-minimized .gc-ttip-msg {
+  margin-bottom: 0;
+}
+
+.gramchecker-tooltip.gc-minimized .gc-minimize {
+  color: #2563eb;
+  transform: rotate(180deg);
+}
+
 /* Título corto del error */
 .gc-ttip-title {
   font-weight: 600;
   font-size: 14px;
   color: #0f172a;
   margin-bottom: 4px;
-  padding-right: 20px; /* espacio para la X */
 }
 
 /* Descripción larga del error */
@@ -144,7 +190,6 @@
   color: #475569;
   margin-bottom: 12px;
   font-size: 13px;
-  padding-right: 15px; /* Evita que choque con la X si no hay título */
 }
 
 /* Contenedor de botones de sugerencia */

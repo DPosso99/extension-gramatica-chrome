@@ -503,9 +503,13 @@
   function showTooltip(rect, match, word, onApply, onIgnoreWord, onIgnoreRule) {
     clearTimeout(tooltipHideTimer);
 
-    let html = '<button class="gc-close" title="Cerrar">&times;</button>';
+    let html = '<div class="gc-ttip-bar">';
+    html += `<button class="gc-minimize" title="Minimizar">&#8212;</button>`;
+    html += '<button class="gc-close" title="Cerrar">&times;</button>';
+    html += '</div>';
     if (match.shortMessage)
       html += `<div class="gc-ttip-title">${escHtml(match.shortMessage)}</div>`;
+    html += '<div class="gc-ttip-body">';
     html += `<div class="gc-ttip-msg">${escHtml(match.message)}</div>`;
 
     const reps = match.replacements?.slice(0, 6) || [];
@@ -527,6 +531,7 @@
     if (word) html += `<button class="gc-ignore-word">&times; Ignorar &ldquo;${escHtml(word)}&rdquo;</button>`;
     if (match.rule?.id) html += `<button class="gc-ignore-rule">&times; Ignorar esta regla siempre</button>`;
     html += '</div>';
+    html += '</div>'; // .gc-ttip-body
 
     tooltipEl.innerHTML = html;
     tooltipEl.style.visibility = 'hidden';
@@ -575,6 +580,12 @@
     tooltipEl.querySelector('.gc-close')?.addEventListener('click', e => {
       e.stopPropagation();
       hideTooltip();
+    });
+
+    // Botón de minimizar
+    tooltipEl.querySelector('.gc-minimize')?.addEventListener('click', e => {
+      e.stopPropagation();
+      tooltipEl.classList.toggle('gc-minimized');
     });
   }
 

@@ -91,7 +91,8 @@ async function handleCheckText({ text, language, serverUrl, apiKey }) {
   const body = new URLSearchParams({
     text,
     language: lang,
-    enabledCategories: 'STYLE,REDUNDANCY,COLLOQUIALISMS,TYPOGRAPHY,PUNCTUATION',
+    level: 'picky',
+    enabledCategories: 'GRAMMAR,SPELLING,TYPOGRAPHY,PUNCTUATION,STYLE,REDUNDANCY,COLLOQUIALISMS,CASING,CONFUSED_WORDS',
     enabledOnly: 'false',
   });
 
