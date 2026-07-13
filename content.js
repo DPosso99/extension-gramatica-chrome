@@ -597,10 +597,10 @@
       const isMin = tooltipEl.classList.toggle('gc-minimized');
       const rect = tooltipEl._gripe;
       if (isMin && rect) {
-        // Posicionar círculo a la derecha del error, centrado verticalmente
+        // Posicionar círculo debajo del error, centrado horizontalmente
         const sx = window.scrollX, sy = window.scrollY;
-        const dotX = rect.right + sx + 4;
-        const dotY = rect.top  + sy + rect.height / 2 - 14;
+        const dotX = rect.left + sx + rect.width / 2 - 14;
+        const dotY = rect.bottom + sy + 4;
         tooltipEl.style.left = dotX + 'px';
         tooltipEl.style.top  = dotY + 'px';
         if (indicator) { indicator.style.display = 'flex'; }
