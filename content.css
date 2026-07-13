@@ -103,6 +103,7 @@
   box-sizing: border-box;
   animation: gc-fade-in 0.15s ease-out;
   transform-origin: top left;
+  transition: border-radius 0.25s ease, min-width 0.25s ease, max-width 0.25s ease, padding 0.25s ease;
 }
 
 @keyframes gc-fade-in {
@@ -161,21 +162,57 @@
   opacity: 1;
 }
 
-/* Estado minimizado: oculta el cuerpo */
-.gramchecker-tooltip.gc-minimized .gc-ttip-body {
-  max-height: 0;
-  opacity: 0;
-  margin: 0;
+/* Estado minimizado: convierte en icono flotante */
+.gramchecker-tooltip.gc-minimized {
+  min-width: 0 !important;
+  max-width: 36px !important;
+  padding: 8px !important;
+  border-radius: 50% !important;
 }
 
-.gramchecker-tooltip.gc-minimized .gc-ttip-msg {
-  margin-bottom: 0;
+.gramchecker-tooltip.gc-minimized::before {
+  display: none !important;
 }
 
-.gramchecker-tooltip.gc-minimized .gc-minimize {
-  color: #2563eb;
-  transform: rotate(180deg);
+.gramchecker-tooltip.gc-minimized .gc-ttip-bar,
+.gramchecker-tooltip.gc-minimized .gc-ttip-title,
+.gramchecker-tooltip.gc-minimized .gc-ttip-body,
+.gramchecker-tooltip.gc-minimized .gc-ttip-cat {
+  display: none !important;
 }
+
+.gramchecker-tooltip.gc-minimized .gc-ttip-indicator {
+  display: flex !important;
+  position: static;
+}
+
+/* Indicador flotante (error type circle) — oculto por defecto */
+.gc-ttip-indicator {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 15px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: transform 0.15s;
+  flex-shrink: 0;
+  position: absolute;
+  top: 8px;
+  right: 36px;
+}
+.gc-ttip-indicator:hover {
+  transform: scale(1.15);
+}
+
+/* Colores del indicador según tipo de error */
+.gc-ttip-indicator.gc-err-gc-spelling     { background: #E53935; }
+.gc-ttip-indicator.gc-err-gc-grammar      { background: #1565C0; }
+.gc-ttip-indicator.gc-err-gc-style        { background: #E65100; }
+.gc-ttip-indicator.gc-err-gc-punctuation  { background: #6A1B9A; }
 
 /* Título corto del error */
 .gc-ttip-title {

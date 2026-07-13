@@ -503,7 +503,10 @@
   function showTooltip(rect, match, word, onApply, onIgnoreWord, onIgnoreRule) {
     clearTimeout(tooltipHideTimer);
 
-    let html = '<div class="gc-ttip-bar">';
+    const cls = errorClass(match);
+
+    let html = `<div class="gc-ttip-indicator gc-err-${cls}" title="Error — clic para expandir">!</div>`;
+    html += '<div class="gc-ttip-bar">';
     html += `<button class="gc-minimize" title="Minimizar">&#8212;</button>`;
     html += '<button class="gc-close" title="Cerrar">&times;</button>';
     html += '</div>';
@@ -582,10 +585,25 @@
       hideTooltip();
     });
 
-    // Botón de minimizar
-    tooltipEl.querySelector('.gc-minimize')?.addEventListener('click', e => {
+    // Botón de minimizar → ícono flotante
+    const minimizeBtn = tooltipEl.querySelector('.gc-minimize');
+    const indicator  = tooltipEl.querySelector('.gc-ttip-indicator');
+    minimizeBtn?.addEventListener('click', e => {
       e.stopPropagation();
       tooltipEl.classList.toggle('gc-minimized');
+      if (tooltipEl.classList.contains('gc-minimized')) {
+        // Mostrar ícono flotante pequeño
+        if (indicator) { indicator.style.display = 'flex'; }
+      } else {
+        if (indicator) { indicator.style.display = 'none'; }
+      }
+    });
+
+    // Clic en el indicador flotante → expandir
+    indicator?.addEventListener('click', e => {
+      e.stopPropagation();
+      tooltipEl.classList.remove('gc-minimized');
+      if (indicator) indicator.style.display = 'none';
     });
   }
 
