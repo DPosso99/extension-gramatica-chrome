@@ -550,7 +550,7 @@
     if (left < sx + 5)             left = sx + 5;
     const spaceBelow = vh - (rect.top + sy);
     const top = spaceBelow >= th + 10
-      ? rect.top + sy + 6          // hay espacio abajo
+      ? rect.top + sy + 10         // hay espacio abajo
       : rect.top + sy - th - 6;    // no hay espacio: va arriba
     tooltipEl.style.left = left + 'px';
     tooltipEl.style.top  = top  + 'px';
@@ -600,7 +600,7 @@
         // Posicionar círculo debajo del error, centrado horizontalmente
         const sx = window.scrollX, sy = window.scrollY;
         const dotX = rect.left + sx + rect.width / 2 - 14;
-        const dotY = rect.bottom + sy + 4;
+        const dotY = rect.bottom + sy + 10;
         tooltipEl.style.left = dotX + 'px';
         tooltipEl.style.top  = dotY + 'px';
         if (indicator) { indicator.style.display = 'flex'; }
