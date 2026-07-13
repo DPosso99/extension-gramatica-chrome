@@ -503,7 +503,7 @@
   function showTooltip(rect, match, word, onApply, onIgnoreWord, onIgnoreRule) {
     clearTimeout(tooltipHideTimer);
 
-    // Si está minimizado, solo reposicionar el ícono flotante al nuevo error
+    // Si está minimizado, reposicionar y actualizar contenido del ícono al nuevo error
     if (tooltipEl.classList.contains('gc-minimized')) {
       const sx = window.scrollX, sy = window.scrollY;
       const dotX = rect.left + sx + rect.width / 2 - 14;
@@ -511,6 +511,18 @@
       tooltipEl.style.left = dotX + 'px';
       tooltipEl.style.top  = dotY + 'px';
       tooltipEl._gripe = rect;
+
+      // Actualizar color del indicador y guardar datos del nuevo error
+      const cls = errorClass(match);
+      const ind = tooltipEl.querySelector('.gc-ttip-indicator');
+      if (ind) {
+        ind.className = `gc-ttip-indicator gc-err-${cls}`;
+      }
+      tooltipEl._match = match;
+      tooltipEl._word  = word;
+      tooltipEl._onApply = onApply;
+      tooltipEl._onIgnoreWord = onIgnoreWord;
+      tooltipEl._onIgnoreRule = onIgnoreRule;
       return;
     }
 
@@ -619,15 +631,17 @@
       }
     });
 
-    // Clic en el indicador flotante → expandir y restaurar posición
+    // Clic en el indicador flotante → reconstruir tooltip con datos del error actual
     indicator?.addEventListener('click', e => {
       e.stopPropagation();
       tooltipEl.classList.remove('gc-minimized');
-      if (tooltipEl._gripos) {
-        tooltipEl.style.left = tooltipEl._gripos.left + 'px';
-        tooltipEl.style.top  = tooltipEl._gripos.top  + 'px';
-      }
       if (indicator) indicator.style.display = 'none';
+      // Reconstruir tooltip con los datos del último error sobre el que se pasó el cursor
+      if (tooltipEl._match) {
+        const r = tooltipEl._gripe || { left: 0, top: 0, bottom: 0, width: 0 };
+        showTooltip(r, tooltipEl._match, tooltipEl._word,
+          tooltipEl._onApply, tooltipEl._onIgnoreWord, tooltipEl._onIgnoreRule);
+      }
     });
   }
 
