@@ -556,6 +556,10 @@
     tooltipEl.style.top  = top  + 'px';
     tooltipEl.style.visibility = 'visible';
 
+    // Guardar posición del error para recolocar al minimizar
+    tooltipEl._gripe = rect;
+    tooltipEl._gripos = { left, top };
+
     // Sugerencias
     tooltipEl.querySelectorAll('.gc-sug').forEach(btn => {
       btn.addEventListener('click', e => {
@@ -585,24 +589,37 @@
       hideTooltip();
     });
 
-    // Botón de minimizar → ícono flotante
+    // Botón de minimizar → ícono flotante a la derecha del error
     const minimizeBtn = tooltipEl.querySelector('.gc-minimize');
     const indicator  = tooltipEl.querySelector('.gc-ttip-indicator');
     minimizeBtn?.addEventListener('click', e => {
       e.stopPropagation();
-      tooltipEl.classList.toggle('gc-minimized');
-      if (tooltipEl.classList.contains('gc-minimized')) {
-        // Mostrar ícono flotante pequeño
+      const isMin = tooltipEl.classList.toggle('gc-minimized');
+      const rect = tooltipEl._gripe;
+      if (isMin && rect) {
+        // Posicionar círculo a la derecha del error, centrado verticalmente
+        const sx = window.scrollX, sy = window.scrollY;
+        const dotX = rect.right + sx + 4;
+        const dotY = rect.top  + sy + rect.height / 2 - 14;
+        tooltipEl.style.left = dotX + 'px';
+        tooltipEl.style.top  = dotY + 'px';
         if (indicator) { indicator.style.display = 'flex'; }
-      } else {
+      } else if (tooltipEl._gripos) {
+        // Restaurar posición original
+        tooltipEl.style.left = tooltipEl._gripos.left + 'px';
+        tooltipEl.style.top  = tooltipEl._gripos.top  + 'px';
         if (indicator) { indicator.style.display = 'none'; }
       }
     });
 
-    // Clic en el indicador flotante → expandir
+    // Clic en el indicador flotante → expandir y restaurar posición
     indicator?.addEventListener('click', e => {
       e.stopPropagation();
       tooltipEl.classList.remove('gc-minimized');
+      if (tooltipEl._gripos) {
+        tooltipEl.style.left = tooltipEl._gripos.left + 'px';
+        tooltipEl.style.top  = tooltipEl._gripos.top  + 'px';
+      }
       if (indicator) indicator.style.display = 'none';
     });
   }
