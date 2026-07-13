@@ -503,8 +503,16 @@
   function showTooltip(rect, match, word, onApply, onIgnoreWord, onIgnoreRule) {
     clearTimeout(tooltipHideTimer);
 
-    // Si está minimizado, no reconstruir el tooltip al pasar el cursor
-    if (tooltipEl.classList.contains('gc-minimized')) return;
+    // Si está minimizado, solo reposicionar el ícono flotante al nuevo error
+    if (tooltipEl.classList.contains('gc-minimized')) {
+      const sx = window.scrollX, sy = window.scrollY;
+      const dotX = rect.left + sx + rect.width / 2 - 14;
+      const dotY = rect.bottom + sy + 10;
+      tooltipEl.style.left = dotX + 'px';
+      tooltipEl.style.top  = dotY + 'px';
+      tooltipEl._gripe = rect;
+      return;
+    }
 
     const cls = errorClass(match);
 
