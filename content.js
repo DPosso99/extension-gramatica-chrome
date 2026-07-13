@@ -503,6 +503,9 @@
   function showTooltip(rect, match, word, onApply, onIgnoreWord, onIgnoreRule) {
     clearTimeout(tooltipHideTimer);
 
+    // Si está minimizado, no reconstruir el tooltip al pasar el cursor
+    if (tooltipEl.classList.contains('gc-minimized')) return;
+
     const cls = errorClass(match);
 
     let html = `<div class="gc-ttip-indicator gc-err-${cls}" title="Error — clic para expandir">!</div>`;
@@ -540,23 +543,19 @@
     tooltipEl.style.visibility = 'hidden';
     tooltipEl.style.display = 'block';
 
-    // Posicionar: abajo si cabe, arriba si no
+    // Posicionar: siempre debajo del error para no tapar las correcciones
     const sx = window.scrollX, sy = window.scrollY;
-    const vw = window.innerWidth, vh = window.innerHeight;
+    const vw = window.innerWidth;
     const tw = tooltipEl.offsetWidth;
-    const th = tooltipEl.offsetHeight;
     let left = rect.left + sx;
     if (left + tw > sx + vw - 10) left = sx + vw - tw - 10;
     if (left < sx + 5)             left = sx + 5;
-    const spaceBelow = vh - (rect.top + sy);
-    const top = spaceBelow >= th + 10
-      ? rect.top + sy + 10         // hay espacio abajo
-      : rect.top + sy - th - 6;    // no hay espacio: va arriba
+    const top = rect.bottom + sy + 8;
     tooltipEl.style.left = left + 'px';
     tooltipEl.style.top  = top  + 'px';
     tooltipEl.style.visibility = 'visible';
 
-    // Guardar posición del error para recolocar al minimizar
+    // Guardar posición para restaurar al expandir
     tooltipEl._gripe = rect;
     tooltipEl._gripos = { left, top };
 
