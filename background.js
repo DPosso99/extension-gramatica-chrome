@@ -108,11 +108,14 @@ async function handleCheckText({ text, language, serverUrl, apiKey }) {
     headers['X-API-Key'] = apiKey.trim();
   }
 
+  // Timeout adaptativo: más tiempo para textos largos
+  const timeout = Math.min(text.length * 2 + 3000, 15000);
+
   const response = await fetch(`${base}/v2/check`, {
     method: 'POST',
     headers,
     body: body.toString(),
-    signal: AbortSignal.timeout(8000),
+    signal: AbortSignal.timeout(timeout),
   });
 
   if (!response.ok) {

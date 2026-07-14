@@ -8,6 +8,7 @@
   // ─── Constantes ───────────────────────────────────────────────────────────
   const DEBOUNCE_MS = 500;       // Espera tras dejar de escribir (reducido para mayor rapidez)
   const MIN_LENGTH  = 10;        // Caracteres mínimos para revisar
+  const MAX_TEXT_CHARS = 8000;   // Máximo de caracteres a enviar al servidor (evita sobrecarga)
 
   // Delimitadores de palabra para auto-corrección
   const WORD_BOUNDARIES = [' ', '.', ',', '!', '?', ':', ';', '\n', '\r'];
@@ -435,23 +436,13 @@
   }
 
   // ─── Comunicación con el background ─────────────────────────────────────
-  let _checkAbortController = null;
-
   async function checkText(text) {
     if (!cfg.enabled) return null;
-
-    // Cancelar cualquier request anterior en vuelo
-    if (_checkAbortController) {
-      _checkAbortController.abort();
-    }
-    _checkAbortController = new AbortController();
-
     const msg = { action: 'checkText', text, language: cfg.language, serverUrl: cfg.serverUrl, apiKey: cfg.apiKey };
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         return await chrome.runtime.sendMessage(msg);
-      } catch (err) {
-        if (_checkAbortController.signal.aborted) return null;
+      } catch {
         if (attempt === 0) await new Promise(r => setTimeout(r, 500));
       }
     }
@@ -669,6 +660,7 @@
       this.overlay  = null;
       this.matches  = [];
       this.timer    = null;
+      this._reqId   = 0;       // ID incremental para ignorar resultados obsoletos
       this._setup();
     }
 
@@ -743,8 +735,9 @@
       const text = this.el.value;
       if (text.trim().length < MIN_LENGTH) { this.clear(); return; }
 
+      const reqId = ++this._reqId;
       const result = await checkText(text);
-      if (!result?.matches) return;
+      if (this._reqId !== reqId || !result?.matches) return;
 
       this.matches = result.matches;
       this._render(text);
@@ -854,6 +847,7 @@
       this.el      = el;
       this.matches = [];
       this.timer   = null;
+      this._reqId  = 0;       // ID incremental para ignorar resultados obsoletos
       this._setup();
     }
 
@@ -914,13 +908,26 @@
 
     async _run() {
       const { text, map } = this._buildTextAndMap();
-      this._charMap  = map;
-      this._lastText = text;
       if (text.trim().length < MIN_LENGTH) { this.clear(); return; }
 
-      const result = await checkText(text);
-      if (!result?.matches) return;
+      const reqId = ++this._reqId;
+      let sendText = text;
+      let trimOffset = 0;
+      if (text.length > MAX_TEXT_CHARS) {
+        trimOffset = text.length - MAX_TEXT_CHARS;
+        sendText = text.slice(-MAX_TEXT_CHARS);
+      }
+      this._charMap  = trimOffset > 0 ? map.slice(trimOffset) : map;
+      this._lastText = text;
+      this._trimOffset = trimOffset;
 
+      const result = await checkText(sendText);
+      if (this._reqId !== reqId || !result?.matches) return;
+
+      // Ajustar offsets si se recortó texto del inicio
+      if (trimOffset > 0) {
+        result.matches = result.matches.map(m => ({ ...m, offset: m.offset + trimOffset }));
+      }
       this.matches = result.matches;
       this._applyHighlights();
     }
