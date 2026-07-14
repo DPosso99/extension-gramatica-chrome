@@ -554,14 +554,18 @@
     tooltipEl.style.visibility = 'hidden';
     tooltipEl.style.display = 'block';
 
-    // Posicionar: siempre debajo del error para no tapar las correcciones
+    // Posicionar: debajo del error, o arriba si no cabe en la ventana
     const sx = window.scrollX, sy = window.scrollY;
-    const vw = window.innerWidth;
+    const vw = window.innerWidth, vh = window.innerHeight;
     const tw = tooltipEl.offsetWidth;
+    const th = tooltipEl.offsetHeight;
     let left = rect.left + sx;
     if (left + tw > sx + vw - 10) left = sx + vw - tw - 10;
     if (left < sx + 5)             left = sx + 5;
-    const top = rect.bottom + sy + 8;
+    const fitsBelow = (rect.bottom + sy + 8 + th) < (sy + vh - 5);
+    const top = fitsBelow
+      ? rect.bottom + sy + 8          // cabe debajo
+      : rect.top + sy - th - 8;       // no cabe: va arriba
     tooltipEl.style.left = left + 'px';
     tooltipEl.style.top  = top  + 'px';
     tooltipEl.style.visibility = 'visible';
