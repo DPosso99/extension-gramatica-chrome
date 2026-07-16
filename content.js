@@ -947,13 +947,14 @@
       const charMap = this._charMap;
       if (!charMap) return;
       const text = this._lastText || '';
+      const trimOff = this._trimOffset || 0;
       const buckets = { 'gc-spelling': [], 'gc-grammar': [], 'gc-style': [], 'gc-punctuation': [] };
 
       for (const m of this.matches) {
         if (isIgnored(m, text)) continue;
-        const start = m.offset;
-        const end   = m.offset + m.length - 1;
-        if (start >= charMap.length || end >= charMap.length || end < start) continue;
+        const start = m.offset - trimOff;
+        const end   = m.offset + m.length - 1 - trimOff;
+        if (start < 0 || start >= charMap.length || end >= charMap.length || end < start) continue;
 
         const se = charMap[start], ee = charMap[end];
         if (!se || !ee) continue; // carácter virtual (salto de línea insertado)
@@ -999,15 +1000,17 @@
       if (charOff < 0) { scheduleHide(); return; }
 
       const text  = this._lastText || '';
+      const trimOff = this._trimOffset || 0;
+      const adjustedOff = charOff + trimOff; // posición en el texto completo
       // Buscar un match en un radio de ±2 caracteres para facilitar la selección
       const match = this.matches.find(m =>
-        !isIgnored(m, text) && charOff >= m.offset - 2 && charOff < m.offset + m.length + 2);
+        !isIgnored(m, text) && adjustedOff >= m.offset - 2 && adjustedOff < m.offset + m.length + 2);
 
       if (match) {
         clearTimeout(tooltipHideTimer);
         const map = this._charMap;
-        const si = match.offset, ei = match.offset + match.length - 1;
-        if (si < map.length && ei < map.length) {
+        const si = match.offset - trimOff, ei = match.offset + match.length - 1 - trimOff;
+        if (si >= 0 && si < map.length && ei >= 0 && ei < map.length) {
           const se = map[si], ee = map[ei];
           if (!se || !ee) { scheduleHide(); return; } // carácter virtual
           try {
@@ -1054,18 +1057,19 @@
         cursorPos = this._getCharOffset(range.startContainer, range.startOffset);
       }
       if (cursorPos < 0) return;
+      const adjCursor = cursorPos + (this._trimOffset || 0); // ajustar a texto completo
 
       const candidates = this.matches
         .filter(m =>
           errorClass(m) === 'gc-spelling' &&
           m.replacements?.length > 0 &&
-          m.offset + m.length < cursorPos
+          m.offset + m.length < adjCursor
         )
         .sort((a, b) => (b.offset + b.length) - (a.offset + a.length));
 
       if (!candidates.length) return;
       const m = candidates[0];
-      if (cursorPos - (m.offset + m.length) > 2) return;
+      if (adjCursor - (m.offset + m.length) > 2) return;
       this._apply(m, m.replacements[0].value);
     }
 
